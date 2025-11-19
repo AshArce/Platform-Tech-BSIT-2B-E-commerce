@@ -4,8 +4,8 @@
 import React, { useState } from 'react';
 import { Container, Grid, Snackbar, Alert, Box, Typography } from '@mui/material';
 import ProductCard from './components/ProductCard';
-import HeroSection from './components/HeroSection'; // Import the new Hero
-import { products } from '../data/products'; // This now imports the Pizza/Burgers
+import HeroSection from './components/HeroSection'; 
+import { products } from '../data/products'; 
 import { useCart } from './context/CartContext';
 
 export default function Home() {
@@ -27,7 +27,6 @@ export default function Home() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* 1. Render the Hero Section */}
       <HeroSection />
 
       <Box sx={{ mt: 4 }}>
@@ -35,10 +34,10 @@ export default function Home() {
           Featured Foods
         </Typography>
 
-        {/* 2. Render the Food Grid */}
+        {/* GRID UPDATE: Use 'size' prop */}
         <Grid container spacing={3}>
           {products.map((product) => (
-            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+            <Grid key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <ProductCard 
                 product={product} 
                 onAddToCart={handleAddToCart} 
@@ -48,7 +47,6 @@ export default function Home() {
         </Grid>
       </Box>
 
-      {/* Notification System */}
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar}>
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }} variant="filled">
           {lastAddedItem} added to your order!

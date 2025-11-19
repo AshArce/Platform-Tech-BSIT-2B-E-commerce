@@ -4,8 +4,7 @@ import { Box } from '@mui/material';
 import { CartProvider } from './context/CartContext'; 
 import MUIProvider from './components/MUIProvider'; 
 import TopNav from './components/TopNav'; 
-import BottomNav from './components/BottomNav'; // <--- 1. Import the component
-
+import BottomNav from './components/BottomNav';
 export const metadata = {
   title: 'E-Bike Express', // Updated Title
   description: 'Food delivery at e-bike speed',

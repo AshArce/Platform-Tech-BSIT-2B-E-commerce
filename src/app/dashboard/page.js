@@ -4,19 +4,14 @@
 import React from 'react';
 import { Container, Typography, Grid, Paper, Box, List, ListItem, ListItemText, Chip, Divider } from '@mui/material';
 import ProfileCard from '../components/ProfileCard';
-import { userProfile, recentOrders } from '../../data/dashboardData';
+import { userProfile, recentOrders } from '../../data/dashboardData'; 
 
-// Helper function to get status color
 const getStatusColor = (status) => {
   switch (status) {
-    case 'Delivered':
-      return 'success';
-    case 'Shipped':
-      return 'warning';
-    case 'Processing':
-      return 'info';
-    default:
-      return 'default';
+    case 'Delivered': return 'success';
+    case 'Cooking': return 'warning'; // Updated for food context
+    case 'Processing': return 'info';
+    default: return 'default';
   }
 };
 
@@ -29,13 +24,13 @@ const DashboardPage = () => {
 
       <Grid container spacing={3}>
         
-        {/* Left Column (xs=12, md=4): Profile Card */}
-        <Grid item xs={12} md={4}>
+        {/* GRID UPDATE: Left Column (Profile) */}
+        <Grid size={{ xs: 12, md: 4 }}>
           <ProfileCard user={userProfile} />
         </Grid>
 
-        {/* Right Column (xs=12, md=8): Recent Orders & Summary */}
-        <Grid item xs={12} md={8}>
+        {/* GRID UPDATE: Right Column (Orders) */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
               Recent Orders
@@ -66,18 +61,18 @@ const DashboardPage = () => {
             </List>
           </Paper>
 
-          {/* Quick Stats Summary */}
+          {/* GRID UPDATE: Stats Summary */}
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
                 <Typography variant="h6" color="primary.contrastText">Total Orders</Typography>
                 <Typography variant="h4" color="primary.contrastText" sx={{ fontWeight: 'bold' }}>{recentOrders.length}</Typography>
               </Paper>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'secondary.light' }}>
                 <Typography variant="h6" color="secondary.contrastText">Lifetime Spend</Typography>
-                <Typography variant="h4" color="secondary.contrastText" sx={{ fontWeight: 'bold' }}>$224.47</Typography>
+                <Typography variant="h4" color="secondary.contrastText" sx={{ fontWeight: 'bold' }}>$45.99</Typography>
               </Paper>
             </Grid>
           </Grid>

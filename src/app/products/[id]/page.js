@@ -1,38 +1,31 @@
-// src/app/products/[id]/page.js (formerly src/app/Pages/ProductDetail.jsx)
+// src/app/products/[id]/page.js
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, TextField, Paper, Grid } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useCart } from '../../context/CartContext';
-import { products } from '../../../data/products'; // Adjust path if needed
+import { products } from '../../../data/products';
+import NextLink from 'next/link'; 
 
-// Helper function to simulate fetching a single product
 const fetchProductById = (id) => {
-  // Finds the product where ID matches the route parameter
-  return products.find(p => p.id === parseInt(id)); 
+  return products.find(p => p.id === parseInt(id));
 };
 
-// Next.js App Router automatically passes route parameters in the 'params' prop
 const ProductDetailPage = ({ params }) => { 
   const { addToCart } = useCart();
-  const productId = params.id; // Access the dynamic part of the URL: [id]
+  const productId = params.id; 
 
-  const product = fetchProductById(productId);
+  const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  
-  // Handle cases where the product is not found
-  if (!product) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <Typography variant="h4" color="error">404 - Product Not Found</Typography>
-        <Button variant="contained" sx={{ mt: 3 }} component={NextLink} href="/">
-            Go Back Home
-        </Button>
-      </Container>
-    );
-  }
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchedProduct = fetchProductById(productId);
+    setProduct(fetchedProduct);
+    setLoading(false);
+  }, [productId]);
 
   const handleQuantityChange = (event) => {
     const value = Math.max(1, Number(event.target.value));
@@ -40,18 +33,26 @@ const ProductDetailPage = ({ params }) => {
   };
 
   const handleAddToCart = () => {
-    addToCart(product, quantity); // Use the current quantity state
-    // Reset quantity after adding
-    setQuantity(1); 
-    console.log(`Added ${quantity} of ${product.name} to cart.`);
+    if (product) {
+      addToCart(product, quantity);
+      setQuantity(1); 
+      console.log(`Added ${quantity} of ${product.name} to cart.`);
+    }
   };
 
+  if (loading) {
+    return <Typography sx={{ p: 4 }}>Loading product details...</Typography>;
+  }
+
+  if (!product) {
+    return <Typography sx={{ p: 4 }}>Product not found.</Typography>;
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <img 
-          src={product.imageUrl.replace('300x200', '600x400')}
+          src={product.imageUrl.replace('300x200', '600x400')} 
           alt={product.name} 
           style={{ width: '100%', height: 'auto', maxHeight: 400, objectFit: 'cover' }} 
         />
@@ -69,11 +70,12 @@ const ProductDetailPage = ({ params }) => {
             {product.description}
           </Typography>
 
+          {/* 🚨 FIX: Removed 'item' prop. Just use <Grid> */}
           <Grid container spacing={2} alignItems="center" sx={{ mb: 4 }}>
-            <Grid item>
+            <Grid>
               <Typography variant="subtitle1">Choose your product quantity:</Typography>
             </Grid>
-            <Grid item>
+            <Grid>
               <TextField
                 label="Quantity"
                 type="number"
@@ -86,7 +88,6 @@ const ProductDetailPage = ({ params }) => {
             </Grid>
           </Grid>
           
-          {/* Action Buttons */}
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button 
               variant="outlined" 
