@@ -9,7 +9,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import { useRouter, usePathname } from 'next/navigation';
 
-const BottomNav = () => {
+const MainNav = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [value, setValue] = useState(0);
@@ -42,15 +42,19 @@ const BottomNav = () => {
         onChange={(event, newValue) => {
           setValue(newValue);
           switch(newValue) {
+            // Home
             case 0:
-              router.push('/home');
-              break;
-            case 1:
               router.push('/home'); 
               break;
-            case 2:
-              router.push('/dashboard'); 
+            // Explore 
+            case 1:
+              router.push('/explore'); 
               break;
+            // Orders
+            case 2:
+              router.push('/checkout'); 
+              break;
+            // Dashboard
             case 3:
               router.push('/dashboard'); 
               break;
@@ -83,4 +87,4 @@ const BottomNav = () => {
   );
 };
 
-export default BottomNav;
+export default MainNav;

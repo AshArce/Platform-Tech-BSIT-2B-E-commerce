@@ -4,7 +4,7 @@ import { Box } from '@mui/material';
 import { CartProvider } from './context/CartContext'; 
 import MUIProvider from './components/MUIProvider'; 
 import TopNav from './components/TopNav'; 
-import BottomNav from './components/BottomNav';
+import MainNav from './components/MainNav';
 export const metadata = {
   title: 'E-Bike Express', // Updated Title
   description: 'Food delivery at e-bike speed',
@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
                 {children}
               </Box>
 
-              <BottomNav />
+              <MainNav />
             </Box>
           </CartProvider>
         </MUIProvider>

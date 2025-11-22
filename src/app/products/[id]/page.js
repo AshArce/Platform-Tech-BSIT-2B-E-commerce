@@ -1,7 +1,7 @@
 // src/app/products/[id]/page.js
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react'; // 1. Import 'use'
 import { Container, Typography, Box, Button, TextField, Paper, Grid } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -14,9 +14,12 @@ const fetchProductById = (id) => {
 };
 
 const ProductDetailPage = ({ params }) => { 
-  const { addToCart } = useCart();
-  const productId = params.id; 
+  // 2. Unwrap the params Promise using React.use()
+  // This converts the Promise into a usable object
+  const unwrappedParams = use(params);
+  const productId = unwrappedParams.id;
 
+  const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -70,7 +73,6 @@ const ProductDetailPage = ({ params }) => {
             {product.description}
           </Typography>
 
-          {/* 🚨 FIX: Removed 'item' prop. Just use <Grid> */}
           <Grid container spacing={2} alignItems="center" sx={{ mb: 4 }}>
             <Grid>
               <Typography variant="subtitle1">Choose your product quantity:</Typography>
