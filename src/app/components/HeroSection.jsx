@@ -7,9 +7,9 @@ import SearchIcon from '@mui/icons-material/Search';
 
 const HeroSection = () => {
   return (
-    <Box sx={{ mb: 4, textAlign: 'center' }}>
+    <Box sx={{ pt: 5, mb: 4, textAlign: 'center' }}>
       {/* Brand Title */}
-      <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 1, color: 'primary.main' }}>
+      <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 1, color: 'primary.text' }}>
         E-BIKE EXPRESS
       </Typography>
       

@@ -9,6 +9,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import { useRouter, usePathname } from 'next/navigation';
 
+
 const MainNav = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -21,7 +22,9 @@ const MainNav = () => {
 
   useEffect(() => {
     if (pathname === '/home') setValue(0);
-    else if (pathname === '/dashboard') setValue(2); 
+    else if (pathname === '/explore') setValue(1); // <-- Mapped Explore to 1
+    else if (pathname === '/checkout') setValue(2); // <-- Mapped Orders (checkout) to 2
+    else if (pathname === '/dashboard') setValue(3); // <-- Mapped Dashboard to 3 (Account)
   }, [pathname]);
 
   return (

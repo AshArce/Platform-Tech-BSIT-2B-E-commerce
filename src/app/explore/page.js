@@ -72,12 +72,12 @@ export default function ExplorePage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       
-      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
+      <Typography variant="h4" sx={{fontWeight: 'bold', mb: 3 }}>
         Explore Menu
       </Typography>
 
       {/* CONTROLS SECTION */}
-      <Box sx={{ mb: 4, position: 'sticky', top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
+      <Box sx={{ mb: 4, top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
         
         <Grid container spacing={2} alignItems="center">
           {/* Search Bar */}

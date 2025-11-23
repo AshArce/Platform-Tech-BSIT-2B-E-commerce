@@ -17,7 +17,7 @@ const getStatusColor = (status) => {
 
 const DashboardPage = () => {
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{py: 4,}}>
       <Typography variant="h3" component="h1" gutterBottom>
         My Dashboard
       </Typography>
