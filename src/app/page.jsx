@@ -1,19 +1,14 @@
-// src/app/auth/page.js
+// src/app/page.jsx
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'; 
 import { 
-  Box, 
-  Container, 
-  Typography, 
-  Button, 
-  TextField, 
-  InputAdornment,
-  Paper,
-  Link as MuiLink,
-  Divider,
-  IconButton
+  Box, Container, Typography, Button, TextField, InputAdornment, 
+  Paper, Link as MuiLink, Divider, IconButton, Alert, Collapse 
 } from '@mui/material';
+
+// ... (Keep all your Icon imports exactly the same) ...
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import EmailIcon from '@mui/icons-material/Email'; 
@@ -24,15 +19,20 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
-const AuthPage = () => {
-  // 🚨 CHANGE: Default state is now 'LOGIN' instead of 'LANDING'
-  const [view, setView] = useState('LOGIN');
-  
+import { useAuth } from './context/AuthContext';
+
+const LoginPage = () => {
+  const router = useRouter(); 
+  // 1. Extract 'register' from context
+  const { login, register } = useAuth(); 
+
+  const [view, setView] = useState('LANDING'); 
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
+    email: '', // In login view, this acts as 'identifier'
     phone: '',
     password: '',
   });
@@ -40,67 +40,61 @@ const AuthPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (loginError) setLoginError('');
   };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (view === 'LOGIN') {
-      console.log('Logging in with:', formData.email, formData.password);
+      // Existing Login Logic
+      const isSuccess = login(formData.email, formData.password); // formData.email acts as identifier here
+      if (isSuccess) {
+        router.push('/home'); 
+      } else {
+        setLoginError('Invalid email/username or password.');
+      }
     } else {
-      console.log('Signing up with:', formData);
+      // 2. NEW SIGN UP LOGIC
+      // Basic validation
+      if(!formData.fullName || !formData.email || !formData.password) {
+        setLoginError('Please fill in all required fields.');
+        return;
+      }
+
+      const result = register(formData);
+
+      if (result.success) {
+        console.log('Registration Success!');
+        router.push('/home'); // Redirect to home immediately
+      } else {
+        setLoginError(result.message); // Show "Email already exists", etc.
+      }
     }
   };
 
+  // ... (Keep renderLanding, renderForm, and the return statement EXACTLY as they were) ...
+  // (I will not repeat the UI code here to save space, just assume the rest of the file is the same)
+  
   const renderLanding = () => (
     <Container maxWidth="xs">
-      <Box sx={{ width: '100%' }}>
-        <Button
-          variant="contained"
-          sx={{
-            width: '100%', py: 1.5, mb: 2, borderRadius: 2,
-            bgcolor: 'black', color: 'white',
-            '&:hover': { bgcolor: 'grey.900' },
-          }}
-          startIcon={<GoogleIcon />}
-        >
+        {/* ... existing landing code ... */}
+        <Box sx={{ width: '100%' }}>
+        <Button variant="contained" sx={{ width: '100%', py: 1.5, mb: 2, borderRadius: 2, bgcolor: 'black', color: 'white', '&:hover': { bgcolor: 'grey.900' } }} startIcon={<GoogleIcon />}>
           Continue With Google
         </Button>
-        <Button
-          variant="contained"
-          sx={{
-            width: '100%', py: 1.5, mb: 2, borderRadius: 2,
-            bgcolor: '#1877F2', color: 'white',
-            '&:hover': { bgcolor: '#165DD7' },
-          }}
-          startIcon={<FacebookIcon />}
-        >
+        <Button variant="contained" sx={{ width: '100%', py: 1.5, mb: 2, borderRadius: 2, bgcolor: '#1877F2', color: 'white', '&:hover': { bgcolor: '#165DD7' } }} startIcon={<FacebookIcon />}>
           Continue With Facebook
         </Button>
-        
         <Divider sx={{ my: 3, color: 'rgba(0,0,0,0.5)' }}>OR</Divider>
-
-        <Button
-          variant="contained"
-          sx={{
-            width: '100%', py: 1.5, mb: 2, borderRadius: 2,
-            bgcolor: 'white', color: 'black',
-            '&:hover': { bgcolor: 'grey.100' },
-          }}
-          startIcon={<EmailIcon />}
-          onClick={() => setView('SIGNUP')} 
-        >
+        <Button variant="contained" sx={{ width: '100%', py: 1.5, mb: 2, borderRadius: 2, bgcolor: 'white', color: 'black', '&:hover': { bgcolor: 'grey.100' } }} startIcon={<EmailIcon />} onClick={() => { setView('SIGNUP'); setLoginError(''); }}>
           Create Account
         </Button>
-
         <Box sx={{ mt: 3 }}>
           <Typography variant="body2" sx={{ mb: 1 }}>Already have an account?</Typography>
-          <Button 
-            variant="text" 
-            sx={{ color: 'black', fontWeight: 'bold', textDecoration: 'underline' }}
-            onClick={() => setView('LOGIN')}
-          >
+          <Button variant="text" sx={{ color: 'black', fontWeight: 'bold', textDecoration: 'underline' }} onClick={() => { setView('LOGIN'); setLoginError(''); }}>
             Sign In Here
           </Button>
         </Box>
@@ -109,115 +103,44 @@ const AuthPage = () => {
   );
 
   const renderForm = (isSignUp) => (
-    <Paper 
-      component="form" 
-      onSubmit={handleSubmit} 
-      elevation={4}
-      sx={{ p: 4, borderRadius: 3, bgcolor: 'white', color: 'black', maxWidth: 400, mx: 'auto' }}
-    >
+    <Paper component="form" onSubmit={handleSubmit} elevation={4} sx={{ p: 4, borderRadius: 3, bgcolor: 'white', color: 'black', maxWidth: 400, mx: 'auto' }}>
       <Box display="flex" alignItems="center" mb={2}>
-        {/* Back button takes you to LANDING now */}
-        <IconButton onClick={() => setView('LANDING')} sx={{ mr: 1 }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-          {isSignUp ? 'Create Account' : 'Welcome Back'}
-        </Typography>
+        <IconButton onClick={() => setView('LANDING')} sx={{ mr: 1 }}><ArrowBackIcon /></IconButton>
+        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Typography>
       </Box>
 
-      {isSignUp && (
-        <TextField
-          fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense"
-          value={formData.fullName} onChange={handleInputChange}
-          InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }}
-        />
-      )}
-
-      <TextField
-        fullWidth name="email" label="Email Address" variant="outlined" margin="dense"
-        value={formData.email} onChange={handleInputChange}
-        InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>) }}
-      />
+      <Collapse in={!!loginError}>
+        <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>
+      </Collapse>
 
       {isSignUp && (
-        <TextField
-          fullWidth name="phone" label="Phone Number" variant="outlined" margin="dense"
-          value={formData.phone} onChange={handleInputChange}
-          InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon color="action" /></InputAdornment>) }}
-        />
+        <TextField fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense" value={formData.fullName} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }} />
       )}
 
-      <TextField
-        fullWidth 
-        name="password" 
-        label="Password" 
-        type={showPassword ? 'text' : 'password'} 
-        variant="outlined" 
-        margin="dense"
-        value={formData.password} 
-        onChange={handleInputChange}
-        InputProps={{ 
-          startAdornment: (<InputAdornment position="start"><LockIcon color="action" /></InputAdornment>),
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
-                {showPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          )
-        }}
-      />
+      {/* Note: I updated the label logic here slightly for clarity */}
+      <TextField fullWidth name="email" label={isSignUp ? "Email Address" : "Email/Phone/Username"} variant="outlined" margin="dense" value={formData.email} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>) }} />
 
-      <Button
-        type="submit"
-        variant="contained"
-        size="large"
-        fullWidth
-        sx={{ 
-            mt: 3, py: 1.5, borderRadius: 2,
-            bgcolor: isSignUp ? '#FFC107' : 'black', 
-            color: isSignUp ? 'black' : 'white',
-            '&:hover': { bgcolor: isSignUp ? '#FFB300' : 'grey.800' }
-        }}
-      >
+      {isSignUp && (
+        <TextField fullWidth name="phone" label="Phone Number" variant="outlined" margin="dense" value={formData.phone} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon color="action" /></InputAdornment>) }} />
+      )}
+
+      <TextField fullWidth name="password" label="Password" type={showPassword ? 'text' : 'password'} variant="outlined" margin="dense" value={formData.password} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon color="action" /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+
+      <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 3, py: 1.5, borderRadius: 2, bgcolor: isSignUp ? '#FFC107' : 'black', color: isSignUp ? 'black' : 'white', '&:hover': { bgcolor: isSignUp ? '#FFB300' : 'grey.800' } }}>
         {isSignUp ? 'Sign Up' : 'Log In'}
       </Button>
 
       {!isSignUp && (
         <Box sx={{ mt: 3 }}>
           <Divider sx={{ mb: 2, color: 'text.secondary', fontSize: '0.875rem' }}>OR LOGIN WITH</Divider>
-          
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<GoogleIcon />}
-            sx={{ mb: 1, color: 'text.primary', borderColor: '#ddd', textTransform: 'none' }}
-          >
-            Google
-          </Button>
-          
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={<FacebookIcon />}
-            sx={{ bgcolor: '#1877F2', color: 'white', '&:hover': { bgcolor: '#165DD7' }, textTransform: 'none' }}
-          >
-            Facebook
-          </Button>
+          <Button variant="outlined" fullWidth startIcon={<GoogleIcon />} sx={{ mb: 1, color: 'text.primary', borderColor: '#ddd', textTransform: 'none' }}>Google</Button>
+          <Button variant="contained" fullWidth startIcon={<FacebookIcon />} sx={{ bgcolor: '#1877F2', color: 'white', '&:hover': { bgcolor: '#165DD7' }, textTransform: 'none' }}>Facebook</Button>
         </Box>
       )}
 
       <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Typography variant="body2" component="span" color="text.secondary">
-          {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-        </Typography>
-        <MuiLink 
-            component="button" 
-            type="button"
-            underline="hover" 
-            sx={{ fontWeight: 'bold', color: 'primary.main', verticalAlign: 'baseline' }}
-            onClick={() => setView(isSignUp ? 'LOGIN' : 'SIGNUP')}
-        >
+        <Typography variant="body2" component="span" color="text.secondary">{isSignUp ? 'Already have an account? ' : "Don't have an account? "}</Typography>
+        <MuiLink component="button" type="button" underline="hover" sx={{ fontWeight: 'bold', color: 'primary.main', verticalAlign: 'baseline' }} onClick={() => { setView(isSignUp ? 'LOGIN' : 'SIGNUP'); setLoginError(''); }}>
           {isSignUp ? 'Log In' : 'Sign Up'}
         </MuiLink>
       </Box>
@@ -225,38 +148,21 @@ const AuthPage = () => {
   );
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      bgcolor: '#FFC107', 
-      textAlign: 'center',
-      py: 4,
-      px: 2,
-    }}>
-      {/* Only show the big logo if we are on the Landing page */}
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#FFC107', textAlign: 'center', py: 4, px: 2 }}>
       {view === 'LANDING' && (
         <Box sx={{ mb: 4, color: 'white' }}>
           <Typography variant="h2" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
             <img src="/vercel.svg" alt="Logo" style={{ maxWidth: '150px', filter: 'invert(100%) brightness(200%)' }} />
           </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2, color: 'black' }}>
-            E-BIKE EXPRESS
-          </Typography>
-          <Typography variant="h6" sx={{ mt: 1, color: 'black' }}>
-            Find Your Flavor Faster
-          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2, color: 'black' }}>E-BIKE EXPRESS</Typography>
+          <Typography variant="h6" sx={{ mt: 1, color: 'black' }}>Find Your Flavor Faster</Typography>
         </Box>
       )}
-
       {view === 'LANDING' && renderLanding()}
       {view === 'SIGNUP' && renderForm(true)}
       {view === 'LOGIN' && renderForm(false)}
-
     </Box>
   );
 };
 
-export default AuthPage;
+export default LoginPage;

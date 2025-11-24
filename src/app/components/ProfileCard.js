@@ -38,5 +38,4 @@ const ProfileCard = ({ user }) => {
     </Card>
   );
 };
-
 export default ProfileCard;

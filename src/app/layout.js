@@ -5,8 +5,12 @@ import { CartProvider } from './context/CartContext';
 import MUIProvider from './components/MUIProvider'; 
 import TopNav from './components/TopNav'; 
 import MainNav from './components/MainNav';
+
+// 1. IMPORT THE AUTH PROVIDER
+import { AuthProvider } from './context/AuthContext'; 
+
 export const metadata = {
-  title: 'E-Bike Express', // Updated Title
+  title: 'E-Bike Express', 
   description: 'Food delivery at e-bike speed',
 };
 
@@ -15,19 +19,20 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <MUIProvider>
-          <CartProvider>
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <TopNav />
-              
-              {/* Main Content Area */}
-              {/* Added pb: 7 (padding-bottom) so content isn't hidden behind the fixed BottomNav on mobile */}
-              <Box component="main" sx={{ flexGrow: 1, pb: { xs: 7, md: 0 } }}>
-                {children}
-              </Box>
+        
+          <AuthProvider>
+            <CartProvider>
+              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <TopNav />
+                
+                <Box component="main" sx={{ flexGrow: 1 }}>
+                  {children}
+                </Box>
 
-              <MainNav />
-            </Box>
-          </CartProvider>
+                <MainNav /> 
+              </Box>
+            </CartProvider>
+          </AuthProvider>
         </MUIProvider>
       </body>
     </html>

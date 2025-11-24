@@ -1,23 +1,40 @@
 // src/app/dashboard/page.js
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Container, Typography, Grid, Paper, Box, List, ListItem, ListItemText, Chip, Divider } from '@mui/material';
 import ProfileCard from '../components/ProfileCard';
-import { userProfile, recentOrders } from '../../data/dashboardData'; 
+import { recentOrders } from '../../data/dashboardData'; 
+
+// 1. Import Auth Hooks
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const getStatusColor = (status) => {
   switch (status) {
     case 'Delivered': return 'success';
-    case 'Cooking': return 'warning'; // Updated for food context
+    case 'Cooking': return 'warning'; 
     case 'Processing': return 'info';
     default: return 'default';
   }
 };
 
 const DashboardPage = () => {
+  // 2. Get Current User
+  const { currentUser } = useAuth(); 
+  const router = useRouter();
+
+  // 3. Protect Route
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/');
+    }
+  }, [currentUser, router]);
+
+  if (!currentUser) return null; 
+
   return (
-    <Container maxWidth="lg" sx={{py: 4,}}>
+    <Container maxWidth="lg" sx={{py: 4}}>
       <Typography variant="h3" component="h1" gutterBottom>
         My Dashboard
       </Typography>
@@ -26,7 +43,8 @@ const DashboardPage = () => {
         
         {/* GRID UPDATE: Left Column (Profile) */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <ProfileCard user={userProfile} />
+          {/* 4. USE DYNAMIC USER */}
+          <ProfileCard user={currentUser} />
         </Grid>
 
         {/* GRID UPDATE: Right Column (Orders) */}
@@ -61,7 +79,7 @@ const DashboardPage = () => {
             </List>
           </Paper>
 
-          {/* GRID UPDATE: Stats Summary */}
+          {/* Stats Summary */}
           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
