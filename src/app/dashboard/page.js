@@ -1,15 +1,12 @@
 // src/app/dashboard/page.js
 'use client';
 
-import React, { useEffect } from 'react';
-import { 
-  Container, Typography, Grid, Paper, Box, List, ListItem, ListItemText, 
-  Chip, Divider, CircularProgress // Import Spinner
-} from '@mui/material';
+import React from 'react'; // Removed useEffect import
+import { Container, Typography, Grid, Paper, Box, List, ListItem, ListItemText, Chip, Divider } from '@mui/material';
 import ProfileCard from '../components/ProfileCard';
 import { recentOrders } from '../../data/dashboardData'; 
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
+// Removed useRouter import
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -21,40 +18,22 @@ const getStatusColor = (status) => {
 };
 
 const DashboardPage = () => {
-  // 1. Get isLoading from context
-  const { currentUser, isLoading } = useAuth(); 
-  const router = useRouter();
+  const { currentUser } = useAuth(); 
+  // Removed router and protection useEffect logic here
+  // AuthGuard handles it globally now
 
-  useEffect(() => {
-    // 2. ONLY redirect if we are done loading AND there is no user
-    if (!isLoading && !currentUser) {
-      router.push('/');
-    }
-  }, [currentUser, isLoading, router]); // Add dependencies
-
-  // 3. SHOW SPINNER while checking
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress color="secondary" />
-      </Box>
-    );
-  }
-
-  // 4. If done loading and no user, don't render content (redirect happens above)
   if (!currentUser) return null; 
 
   return (
     <Container maxWidth="lg" sx={{ py: 4, pb: 10 }}>
+      {/* ... (Rest of your Dashboard Code remains exactly the same) ... */}
       <Typography variant="h3" component="h1" gutterBottom>
         My Dashboard
       </Typography>
-
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 4 }}>
           <ProfileCard user={currentUser} />
         </Grid>
-
         <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
@@ -85,8 +64,8 @@ const DashboardPage = () => {
               ))}
             </List>
           </Paper>
-
-          <Grid container spacing={2}>
+          {/* ... Stats Summary grids ... */}
+           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
                 <Typography variant="h6" color="primary.contrastText">Total Orders</Typography>

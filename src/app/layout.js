@@ -2,12 +2,11 @@
 
 import { Box } from '@mui/material'; 
 import { CartProvider } from './context/CartContext'; 
+import { AuthProvider } from './context/AuthContext'; 
 import MUIProvider from './components/MUIProvider'; 
 import TopNav from './components/TopNav'; 
 import MainNav from './components/MainNav';
-
-// 1. IMPORT THE AUTH PROVIDER
-import { AuthProvider } from './context/AuthContext'; 
+import AuthGuard from './components/AuthGuard'; // 1. Import the Guard
 
 export const metadata = {
   title: 'E-Bike Express', 
@@ -19,18 +18,20 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <MUIProvider>
-        
           <AuthProvider>
             <CartProvider>
-              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <TopNav />
-                
-                <Box component="main" sx={{ flexGrow: 1 }}>
-                  {children}
-                </Box>
+              {/* 2. Apply the AuthGuard inside the Providers */}
+              <AuthGuard>
+                <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                  <TopNav />
+                  
+                  <Box component="main" sx={{ flexGrow: 1, pb: { xs: 7, md: 0 } }}>
+                    {children}
+                  </Box>
 
-                <MainNav /> 
-              </Box>
+                  <MainNav /> 
+                </Box>
+              </AuthGuard>
             </CartProvider>
           </AuthProvider>
         </MUIProvider>
