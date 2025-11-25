@@ -32,7 +32,7 @@ const TopNav = () => {
           </Link>
         </Typography>
         <IconButton size="large" aria-label={`show ${cartCount} items in cart`} color="inherit" sx={{ color: 'text.primary' }}>
-          <Link href="/checkout" passHref>
+          <Link href="/cart" passHref>
             <Badge badgeContent={cartCount} color="error">
               <ShoppingCartIcon />
             </Badge>

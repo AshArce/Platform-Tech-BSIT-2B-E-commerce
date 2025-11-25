@@ -2,24 +2,32 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, Typography, IconButton, Grid, Box, Divider } from '@mui/material';
+import { Card, CardContent, Typography, IconButton, Grid, Box, Divider, Checkbox } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useCart } from '../context/CartContext';
 
-const CartItem = ({ item }) => {
-  const { addToCart, removeFromCart, deleteItemFromCart } = useCart(); // Added deleteItemFromCart support if you added it to context
+// 1. Accept new props: isSelected, onToggle
+const CartItem = ({ item, isSelected, onToggle }) => {
+  const { addToCart, removeFromCart, deleteItemFromCart } = useCart();
   const { id, name, price, quantity, imageUrl } = item;
   const itemTotal = (price * quantity).toFixed(2);
 
   const handleAdd = () => addToCart(item, 1);
   const handleRemove = () => removeFromCart(id);
-  // If you haven't added deleteItemFromCart to context yet, just ignore the next line or use handleRemove
   const handleDelete = () => deleteItemFromCart ? deleteItemFromCart(id) : removeFromCart(id); 
 
   return (
-    <Card sx={{ display: 'flex', mb: 2, p: 1, boxShadow: 1 }}>
+    <Card sx={{ display: 'flex', mb: 2, p: 1, boxShadow: 1, alignItems: 'center' }}>
+      
+      {/* 2. Add the Checkbox here */}
+      <Checkbox 
+        checked={isSelected || false} 
+        onChange={() => onToggle(id)}
+        sx={{ mr: 1 }}
+      />
+
       <Box sx={{ width: 100, flexShrink: 0, mr: 2 }}>
         <img 
           src={imageUrl} 
@@ -28,7 +36,6 @@ const CartItem = ({ item }) => {
         />
       </Box>
       <CardContent sx={{ flexGrow: 1, p: 1, '&:last-child': { pb: 1 } }}>
-        {/* 🚨 FIX: Removed 'item' and 'xs'. Used 'size' */}
         <Grid container spacing={1} alignItems="center">
           
           <Grid size={{ xs: 12 }}>

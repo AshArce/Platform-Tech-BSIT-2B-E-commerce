@@ -1,12 +1,5 @@
 // src/data/dashboardData.js
 
-export const userProfile = {
-  name: 'Alex The Foodie',
-  email: 'alex.eats@example.com',
-  memberSince: 'January 2024',
-  avatarUrl: 'https://via.placeholder.com/150?text=Alex', // You can replace with a real image later
-};
-
 export const recentOrders = [
   {
     id: 'ORD-8821',

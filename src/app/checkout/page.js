@@ -1,136 +1,143 @@
 // src/app/checkout/page.js
 'use client';
 
-import React from 'react';
-import { Container, Typography, Box, Button, Grid, Paper, Divider } from '@mui/material';
-// Using LocalMallIcon as it looks closer to the solid basket in your image
-import LocalMallIcon from '@mui/icons-material/LocalMall';
-import { useCart } from '../context/CartContext';
-import CartItem from '../components/CartItem'; 
-import NextLink from 'next/link';
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, Typography, Box, Button, Grid, Paper, Divider, 
+  Radio, RadioGroup, FormControlLabel, TextField 
+} from '@mui/material';
+import PaymentIcon from '@mui/icons-material/Payment';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-const CheckoutPage = () => {
-  const { cartItems, cartTotal } = useCart();
+// Import Contexts and Router
+import { useCart } from '../context/CartContext'; 
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
+
+export default function PaymentPage() {
+  const { checkoutItems, processOrder } = useCart();
+  const { currentUser } = useAuth(); // Get the logged-in user
+  const router = useRouter();
   
-  // --- CUSTOM EMPTY STATE DESIGN ---
-  if (cartItems.length === 0) {
-    return (
-      <Container 
-        maxWidth="sm" 
-        sx={{ 
-          py: 4, 
-          minHeight: '60vh', // Ensure enough height to center vertically
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center', // Center content vertically
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 4 }}>
-          My Order
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  
+  // Calculate totals based on passed items
+  const subtotal = checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const deliveryFee = 5.00;
+  const finalTotal = (subtotal + deliveryFee).toFixed(2);
+
+  // Redirect back to cart if no items to checkout (e.g. user refreshed page)
+  useEffect(() => {
+    if (checkoutItems.length === 0) {
+      router.push('/cart');
+    }
+  }, [checkoutItems, router]);
+
+  const handlePlaceOrder = () => {
+    // 1. Get the Item IDs
+    const paidItemIds = checkoutItems.map(item => item.id);
+    
+    // 2. Get the User ID (or 0 if guest/dev mode)
+    const userId = currentUser ? currentUser.id : 0;
+
+    // 3. Process the order (Pass IDs, Total, and UserID)
+    processOrder(paidItemIds, finalTotal, userId);
+    
+    // 4. Redirect to the Tracking Page
+    router.push('/orders');
+  };
+
+  // Prevent flash of empty content
+  if (checkoutItems.length === 0) return null; 
+
+  return (
+    <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', pb: 4 }}>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: '800', mb: 3 }}>
+          Checkout
         </Typography>
 
-        {/* The Graphic Container (Illustration Area) */}
-        <Box sx={{ position: 'relative', width: 300, height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 4 }}>
+        <Grid container spacing={3}>
           
-          {/* 1. The Abstract Yellow Blob Background */}
-          <Box 
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -45%) rotate(-10deg)', // Center and tilt
-              width: 260,
-              height: 220,
-              bgcolor: '#FFC107', // Brand Yellow
-              borderRadius: '40% 60% 50% 50% / 50% 50% 60% 40%', // CSS trick for organic blob shape
-              opacity: 0.8,
-              zIndex: 0, // Send to back
-            }} 
-          />
+          {/* LEFT COLUMN: Details */}
+          <Grid size={{ xs: 12, md: 8 }}>
+            
+            {/* 1. Delivery Address */}
+            <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <LocationOnIcon color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" fontWeight="bold">Delivery Address</Typography>
+              </Box>
+              <TextField 
+                fullWidth 
+                multiline 
+                rows={2} 
+                defaultValue="123 Main Street, Foodie City, FC 90210" 
+                variant="outlined" 
+                sx={{ bgcolor: '#f9f9f9' }}
+              />
+            </Paper>
 
-          {/* 2. The Main Black Basket Icon */}
-          <LocalMallIcon 
-            sx={{ 
-              fontSize: 150, // Very large
-              color: 'black', 
-              position: 'relative', // Ensure it sits above blob
-              zIndex: 1 
-            }} 
-          />
-           {/* Optional: Small decorative dots/crosses could be added here as small absolute Boxes if desired */}
-        </Box>
+            {/* 2. Payment Method */}
+            <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <PaymentIcon color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" fontWeight="bold">Payment Method</Typography>
+              </Box>
+              <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                <FormControlLabel value="cash" control={<Radio />} label="Cash on Delivery" />
+                <FormControlLabel value="card" control={<Radio />} label="Credit / Debit Card" />
+              </RadioGroup>
+            </Paper>
 
-        {/* The Text Content */}
-        <Box sx={{ textAlign: 'center', maxWidth: 350 }}>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Order Empty
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.5 }}>
-            Your order list is currently empty. Browse our menu to place your first order.
-          </Typography>
-        </Box>
+            {/* 3. Items Review */}
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Typography variant="h6" fontWeight="bold" mb={2}>Items ({checkoutItems.length})</Typography>
+              {checkoutItems.map((item) => (
+                <Box key={item.id} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                  <Typography variant="body2">{item.quantity}x {item.name}</Typography>
+                  <Typography variant="body2" fontWeight="bold">${(item.price * item.quantity).toFixed(2)}</Typography>
+                </Box>
+              ))}
+            </Paper>
+          </Grid>
 
-      {/* Note: I removed the "Go to Products" button as it wasn't in your reference image, 
-          but the bottom Nav handles that anyway. */}
+          {/* RIGHT COLUMN: Payment Summary */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 3, position: 'sticky', top: 100 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Payment Summary</Typography>
+              <Divider sx={{ my: 2 }} />
+              
+              <Box display="flex" justifyContent="space-between" mb={1}>
+                <Typography>Subtotal</Typography>
+                <Typography>${subtotal.toFixed(2)}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between" mb={1}>
+                <Typography>Delivery Fee</Typography>
+                <Typography>${deliveryFee.toFixed(2)}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between" mt={2}>
+                <Typography variant="h6" fontWeight="bold">Total To Pay</Typography>
+                <Typography variant="h5" fontWeight="bold" color="primary.main">${finalTotal}</Typography>
+              </Box>
+
+              <Button 
+                variant="contained" 
+                color="primary" 
+                size="large" 
+                fullWidth 
+                onClick={handlePlaceOrder}
+                startIcon={<CheckCircleIcon />}
+                sx={{ mt: 3, py: 1.5, borderRadius: 2, fontWeight: 'bold', fontSize: '1.1rem' }}
+              >
+                Place Order
+              </Button>
+            </Paper>
+          </Grid>
+
+        </Grid>
       </Container>
-    );
-  }
-  // ---------------------------------
-
-
-  // Content for when the cart has items (Unchanged from before)
-  return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom>
-        Your Shopping Cart
-      </Typography>
-      
-      <Grid container spacing={3}>
-        
-        {/* Left Column: Cart Item List */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Box>
-            {cartItems.map((item) => (
-              <CartItem key={item.id} item={item} />
-            ))}
-          </Box>
-        </Grid>
-
-        {/* Right Column: Order Summary */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Order Summary
-            </Typography>
-            <Divider sx={{ my: 1 }} />
-            
-            <Box display="flex" justifyContent="space-between" sx={{ my: 1 }}>
-              <Typography variant="body1">Subtotal:</Typography>
-              <Typography variant="body1">${cartTotal}</Typography>
-            </Box>
-            
-            <Box display="flex" justifyContent="space-between" sx={{ my: 1 }}>
-              <Typography variant="body1">Delivery Fee:</Typography>
-              <Typography variant="body1">$5.00</Typography>
-            </Box>
-            
-            <Divider sx={{ my: 1.5 }} />
-            
-            <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold">Order Total:</Typography>
-              {/* Calculate total including simulated shipping */}
-              <Typography variant="h6" fontWeight="bold">${(parseFloat(cartTotal) + 5).toFixed(2)}</Typography>
-            </Box>
-
-            <Button variant="contained" color="secondary" size="large" fullWidth>
-              Place Order
-            </Button>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+    </Box>
   );
-};
-
-export default CheckoutPage;
+}
