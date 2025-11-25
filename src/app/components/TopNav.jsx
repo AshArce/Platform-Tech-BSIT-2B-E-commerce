@@ -43,7 +43,7 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
   
   const navItems = [
     { name: "Explore", icon: <ExploreIcon />, href: "/explore" },
-    { name: "Orders", icon: <ShoppingBagIcon />, href: "/checkout" },
+    { name: "Orders", icon: <ShoppingBagIcon />, href: "/orders" },
     { name: "Home", icon: <HomeIcon />, href: "/home" },
   ];
 

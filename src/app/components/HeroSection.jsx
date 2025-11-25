@@ -16,40 +16,6 @@ const HeroSection = () => {
       <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
         Delicious food, delivered at e-bike speed.
       </Typography>
-
-      {/* Search Bar Visual */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 2, 
-          bgcolor: 'primary.main', 
-          borderRadius: 4,
-          color: 'white'
-        }}
-      >
-        <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
-          What are you craving?
-        </Typography>
-        <TextField
-          fullWidth
-          placeholder="Search for restaurants or food..."
-          variant="outlined"
-          sx={{ 
-            bgcolor: 'white', 
-            borderRadius: 2,
-            '& .MuiOutlinedInput-root': {
-              '& fieldset': { borderColor: 'transparent' },
-            }
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Paper>
     </Box>
   );
 };
