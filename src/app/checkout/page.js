@@ -10,46 +10,46 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-// Import Contexts and Router
 import { useCart } from '../context/CartContext'; 
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function PaymentPage() {
   const { checkoutItems, processOrder } = useCart();
-  const { currentUser } = useAuth(); // Get the logged-in user
+  const { currentUser } = useAuth(); 
   const router = useRouter();
   
   const [paymentMethod, setPaymentMethod] = useState('cash');
   
-  // Calculate totals based on passed items
+  // 1. NEW STATE: Track if order was just placed to prevent auto-redirect
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+  
   const subtotal = checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const deliveryFee = 5.00;
   const finalTotal = (subtotal + deliveryFee).toFixed(2);
 
-  // Redirect back to cart if no items to checkout (e.g. user refreshed page)
+  // 2. UPDATED EFFECT: Only redirect to cart if order was NOT just placed
   useEffect(() => {
-    if (checkoutItems.length === 0) {
+    if (!isOrderPlaced && checkoutItems.length === 0) {
       router.push('/cart');
     }
-  }, [checkoutItems, router]);
+  }, [checkoutItems, router, isOrderPlaced]);
 
   const handlePlaceOrder = () => {
-    // 1. Get the Item IDs
+    // 3. Set flag TRUE so the useEffect above ignores the empty cart
+    setIsOrderPlaced(true);
+
     const paidItemIds = checkoutItems.map(item => item.id);
-    
-    // 2. Get the User ID (or 0 if guest/dev mode)
     const userId = currentUser ? currentUser.id : 0;
 
-    // 3. Process the order (Pass IDs, Total, and UserID)
     processOrder(paidItemIds, finalTotal, userId);
     
-    // 4. Redirect to the Tracking Page
+    // 4. Force navigation to Orders
     router.push('/orders');
   };
 
-  // Prevent flash of empty content
-  if (checkoutItems.length === 0) return null; 
+  // Prevent flash of empty content (unless we just placed an order)
+  if (!isOrderPlaced && checkoutItems.length === 0) return null; 
 
   return (
     <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', pb: 4 }}>
@@ -63,7 +63,7 @@ export default function PaymentPage() {
           {/* LEFT COLUMN: Details */}
           <Grid size={{ xs: 12, md: 8 }}>
             
-            {/* 1. Delivery Address */}
+            {/* Delivery Address */}
             <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
               <Box display="flex" alignItems="center" mb={2}>
                 <LocationOnIcon color="primary" sx={{ mr: 1 }} />
@@ -79,7 +79,7 @@ export default function PaymentPage() {
               />
             </Paper>
 
-            {/* 2. Payment Method */}
+            {/* Payment Method */}
             <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
               <Box display="flex" alignItems="center" mb={2}>
                 <PaymentIcon color="primary" sx={{ mr: 1 }} />
@@ -91,13 +91,13 @@ export default function PaymentPage() {
               </RadioGroup>
             </Paper>
 
-            {/* 3. Items Review */}
+            {/* Items Review */}
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="h6" fontWeight="bold" mb={2}>Items ({checkoutItems.length})</Typography>
               {checkoutItems.map((item) => (
                 <Box key={item.id} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                   <Typography variant="body2">{item.quantity}x {item.name}</Typography>
-                  <Typography variant="body2" fontWeight="bold">${(item.price * item.quantity).toFixed(2)}</Typography>
+                  <Typography variant="body2" fontWeight="bold">₱{(item.price * item.quantity).toFixed(2)}</Typography>
                 </Box>
               ))}
             </Paper>
@@ -111,15 +111,15 @@ export default function PaymentPage() {
               
               <Box display="flex" justifyContent="space-between" mb={1}>
                 <Typography>Subtotal</Typography>
-                <Typography>${subtotal.toFixed(2)}</Typography>
+                <Typography>₱{subtotal.toFixed(2)}</Typography>
               </Box>
               <Box display="flex" justifyContent="space-between" mb={1}>
                 <Typography>Delivery Fee</Typography>
-                <Typography>${deliveryFee.toFixed(2)}</Typography>
+                <Typography>₱{deliveryFee.toFixed(2)}</Typography>
               </Box>
               <Box display="flex" justifyContent="space-between" mt={2}>
                 <Typography variant="h6" fontWeight="bold">Total To Pay</Typography>
-                <Typography variant="h5" fontWeight="bold" color="primary.main">${finalTotal}</Typography>
+                <Typography variant="h5" fontWeight="bold" color="primary.main">₱{finalTotal}</Typography>
               </Box>
 
               <Button 

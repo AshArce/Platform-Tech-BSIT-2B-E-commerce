@@ -46,7 +46,7 @@ const CartItem = ({ item, isSelected, onToggle }) => {
           
           <Grid size={{ xs: 12, sm: 4 }}>
             <Typography variant="body2" color="text.secondary">
-              Price: ${price.toFixed(2)}
+              Price: ₱{price.toFixed(2)}
             </Typography>
           </Grid>
           
@@ -70,7 +70,7 @@ const CartItem = ({ item, isSelected, onToggle }) => {
           <Grid size={{ xs: 12 }}>
             <Divider sx={{ my: 0.5 }} />
             <Typography variant="body1" align="right" fontWeight="bold">
-              Total: ${itemTotal}
+              Total: ₱{itemTotal}
             </Typography>
           </Grid>
         </Grid>

@@ -44,7 +44,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         </MuiLink>
 
         <Typography variant="h5" color="text.primary" sx={{ mb: 1.5 }}>
-          ${price.toFixed(2)}
+          ₱{price.toFixed(2)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {description}
