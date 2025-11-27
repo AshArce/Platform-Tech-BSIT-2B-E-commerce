@@ -9,53 +9,29 @@ const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  // Initialize with defaults, we will overwrite them in useEffect if storage exists
   const [cartItems, setCartItems] = useState([]);
   const [orderHistory, setOrderHistory] = useState(initialOrders);
-  
   const [checkoutItems, setCheckoutItems] = useState([]); 
 
-  // 1. LOAD DATA ON STARTUP
+  // Load/Save Logic (Keep existing localStorage useEffects here...)
+  // ... (I will omit the useEffects for brevity, but keep them in your file!) ...
   useEffect(() => {
-    // Load Cart
     const storedCart = localStorage.getItem('FOODIE_CART');
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
-    }
-
-    // Load Orders
+    if (storedCart) setCartItems(JSON.parse(storedCart));
     const storedOrders = localStorage.getItem('FOODIE_ORDERS');
-    if (storedOrders) {
-      setOrderHistory(JSON.parse(storedOrders));
-    } else {
-      // If no history exists in storage (first run), save the mock data
-      localStorage.setItem('FOODIE_ORDERS', JSON.stringify(initialOrders));
-    }
+    if (storedOrders) setOrderHistory(JSON.parse(storedOrders));
+    else localStorage.setItem('FOODIE_ORDERS', JSON.stringify(initialOrders));
   }, []);
 
-  // 2. SAVE CART AUTOMATICALLY
-  // Whenever cartItems changes, save it to storage
-  useEffect(() => {
-    localStorage.setItem('FOODIE_CART', JSON.stringify(cartItems));
-  }, [cartItems]);
+  useEffect(() => { localStorage.setItem('FOODIE_CART', JSON.stringify(cartItems)); }, [cartItems]);
+  useEffect(() => { localStorage.setItem('FOODIE_ORDERS', JSON.stringify(orderHistory)); }, [orderHistory]);
 
-  // 3. SAVE ORDERS AUTOMATICALLY
-  // Whenever orderHistory changes, save it to storage
-  useEffect(() => {
-    localStorage.setItem('FOODIE_ORDERS', JSON.stringify(orderHistory));
-  }, [orderHistory]);
-
-
-  // --- EXISTING LOGIC BELOW (Unchanged) ---
-
+  // ... (Keep addToCart, removeFromCart, deleteItemFromCart) ...
   const addToCart = (product, quantity = 1) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
-      } else {
-        return [...prevItems, { ...product, quantity }];
-      }
+      if (existingItem) return prevItems.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+      return [...prevItems, { ...product, quantity }];
     });
   };
 
@@ -77,6 +53,9 @@ export const CartProvider = ({ children }) => {
     ));
   };
 
+  // 1. HELPER: Generate random time between 5000ms (5s) and 15000ms (15s)
+  const getRandomTime = () => Math.floor(Math.random() * (15000 - 5000 + 1) + 5000);
+
   const processOrder = (paidItemIds, totalAmount, userId) => {
     setCartItems(prevItems => prevItems.filter(item => !paidItemIds.includes(item.id)));
     setCheckoutItems([]); 
@@ -88,7 +67,7 @@ export const CartProvider = ({ children }) => {
       userId: userId, 
       date: new Date().toLocaleDateString(),
       total: parseFloat(totalAmount),
-      status: 'Cooking',
+      status: 'Cooking', // Start Here
       items: checkoutItems.map(item => ({
         name: item.name,
         quantity: item.quantity,
@@ -98,11 +77,26 @@ export const CartProvider = ({ children }) => {
 
     setOrderHistory(prev => [newOrder, ...prev]);
 
+    // 2. SIMULATION LOGIC (Nested Timeouts)
+    const cookingTime = getRandomTime();
+    console.log(`Cooking for ${cookingTime / 1000} seconds...`);
+
     setTimeout(() => {
-      updateOrderStatus(newOrderId, 'On the Way');
-    }, 5000);
+      // Step 2: Waiting for Courier
+      updateOrderStatus(newOrderId, 'Waiting for Courier');
+      
+      const courierTime = getRandomTime();
+      console.log(`Courier arriving in ${courierTime / 1000} seconds...`);
+
+      setTimeout(() => {
+        // Step 3: On the Way
+        updateOrderStatus(newOrderId, 'On the Way');
+      }, courierTime);
+
+    }, cookingTime);
   };
 
+  // ... rest of context ...
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0).toFixed(2);
 

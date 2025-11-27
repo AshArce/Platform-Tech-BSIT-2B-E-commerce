@@ -2,12 +2,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Container, Typography, Box, Paper, Chip, Button, Divider, Stack, Grid } from '@mui/material'; // Added Grid
+import { Container, Typography, Box, Paper, Chip, Button, Divider, Stack, Grid } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CancelIcon from '@mui/icons-material/Cancel';
+import MopedIcon from '@mui/icons-material/Moped'; // New Icon for Courier
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +16,7 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'Delivered': return 'success';
     case 'Cooking': return 'warning';
+    case 'Waiting for Courier': return 'warning'; // Same as cooking or slight diff
     case 'On the Way': return 'info';
     case 'Refunded': return 'error';
     case 'Cancelled': return 'error';
@@ -25,6 +27,7 @@ const getStatusColor = (status) => {
 const getStatusIcon = (status) => {
   switch (status) {
     case 'Cooking': return <RestaurantIcon fontSize="small" />;
+    case 'Waiting for Courier': return <MopedIcon fontSize="small" />; // New Icon
     case 'On the Way': return <LocalShippingIcon fontSize="small" />;
     case 'Delivered': return <CheckCircleIcon fontSize="small" />;
     case 'Cancelled': return <CancelIcon fontSize="small" />;
@@ -35,15 +38,15 @@ const getStatusIcon = (status) => {
 
 const FILTER_TABS = [
   { label: 'All', statuses: [] }, 
-  { label: 'To Receive', statuses: ['Cooking', 'On the Way'] },
+  // Add the new status to "To Receive"
+  { label: 'To Receive', statuses: ['Cooking', 'Waiting for Courier', 'On the Way'] },
   { label: 'Delivered', statuses: ['Delivered'] },
-  { label: 'Refund/Cancel', statuses: ['Refunded', 'Cancelled', 'Returned'] }
+  { label: 'Refund/Cancel', statuses: ['Refunded', 'Cancelled'] } 
 ];
 
 export default function OrdersPage() {
   const { orderHistory, updateOrderStatus } = useCart();
   const { currentUser } = useAuth();
-  
   const [activeTab, setActiveTab] = useState('All');
 
   const userOrders = currentUser 
@@ -62,7 +65,6 @@ export default function OrdersPage() {
         My Orders
       </Typography>
 
-      {/* FILTER TABS UI */}
       <Box sx={{ mb: 3, overflowX: 'auto', pb: 1 }}>
         <Stack direction="row" spacing={1}>
           {FILTER_TABS.map((tab) => (
@@ -99,72 +101,80 @@ export default function OrdersPage() {
                   label={order.status} 
                   color={getStatusColor(order.status)} 
                   size="small" 
-                  variant={['Cooking', 'On the Way'].includes(order.status) ? 'filled' : 'outlined'}
+                  variant={['Cooking', 'Waiting for Courier', 'On the Way'].includes(order.status) ? 'filled' : 'outlined'}
                 />
               </Box>
 
               <Divider sx={{ my: 2 }} />
 
-              {/* 🚨 UPDATED: Itemized List with Prices */}
+              {/* Items List */}
               <Box sx={{ mb: 2 }}>
                 {order.items.map((item, index) => (
                   <Grid container key={index} justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                    
-                    {/* Left: Quantity + Name */}
                     <Grid size={{ xs: 8 }}>
                       <Typography variant="body2">
                         <strong style={{ marginRight: '8px' }}>{item.quantity}x</strong> 
                         {item.name}
                       </Typography>
-                      {/* Optional: Show unit price if quantity > 1 */}
                       {item.quantity > 1 && (
                         <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
                           (₱{item.price.toFixed(2)} each)
                         </Typography>
                       )}
                     </Grid>
-
-                    {/* Right: Line Total */}
                     <Grid size={{ xs: 4 }} textAlign="right">
                       <Typography variant="body2" fontWeight="bold" color="text.primary">
                         ₱{(item.price * item.quantity).toFixed(2)}
                       </Typography>
                     </Grid>
-
                   </Grid>
                 ))}
               </Box>
 
               <Divider sx={{ my: 1, borderStyle: 'dashed' }} />
 
-              {/* Order Total */}
               <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-                <Typography variant="body2" color="text.secondary">
-                  Delivery Fee: ₱5.00
-                </Typography>
+                <Typography variant="body2" color="text.secondary">Delivery Fee: ₱5.00</Typography>
                 <Box textAlign="right">
                   <Typography variant="body2" color="text.secondary">Order Total</Typography>
-                  <Typography variant="h6" fontWeight="bold" color="primary.main">
-                    ₱{Number(order.total).toFixed(2)}
-                  </Typography>
+                  <Typography variant="h6" fontWeight="bold" color="primary.main">₱{Number(order.total).toFixed(2)}</Typography>
                 </Box>
               </Box>
 
               {/* Actions */}
               <Box mt={3} display="flex" justifyContent="flex-end" gap={1}>
+                
+                {/* 1. Cooking: Allow Cancel */}
+                {order.status === 'Cooking' && (
+                  <Button variant="outlined" color="error" size="small" startIcon={<CancelIcon />} onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
+                    Cancel Order
+                  </Button>
+                )}
+
+                {/* 2. Waiting for Courier: No Action, just Info */}
+                {order.status === 'Waiting for Courier' && (
+                  <Typography variant="caption" color="warning.main" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <MopedIcon fontSize="small" /> Finding nearest rider...
+                  </Typography>
+                )}
+
+                {/* 3. On the Way: Allow Receive */}
                 {order.status === 'On the Way' && (
                   <Button variant="contained" color="primary" size="small" startIcon={<CheckCircleIcon />} onClick={() => updateOrderStatus(order.id, 'Delivered')}>
                     Order Received
                   </Button>
                 )}
+
+                {/* 4. Delivered: Allow Refund */}
                 {order.status === 'Delivered' && (
                   <Button variant="outlined" color="error" size="small" startIcon={<RestartAltIcon />} onClick={() => updateOrderStatus(order.id, 'Refunded')}>
                     Request Refund
                   </Button>
                 )}
-                {order.status === 'Cooking' && (
-                  <Typography variant="caption" color="warning.main" sx={{ fontWeight: 'bold' }}>
-                    Kitchen is preparing your order...
+
+                {['Cancelled', 'Refunded'].includes(order.status) && (
+                  <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+                    No further actions available
                   </Typography>
                 )}
               </Box>
