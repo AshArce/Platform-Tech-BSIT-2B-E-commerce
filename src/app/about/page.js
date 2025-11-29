@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { 
   Box, 
@@ -65,6 +64,7 @@ export default function AboutPage() {
           </Typography>
           
           <Button 
+           href="/explore"
             variant="contained" 
             color="primary" 
             size="large"
@@ -77,12 +77,12 @@ export default function AboutPage() {
 
       {/* 2. VALUES GRID (Floating Cards) */}
       <Container maxWidth="lg" sx={{ mt: -6, mb: 12, position: 'relative', zIndex: 2 }}>
-        <Grid container spacing={3}>
+        {/* FIX: Added justifyContent="center" here */}
+        <Grid container spacing={2} justifyContent="center">
           {[
             { label: 'Eco-Friendly Fleet', icon: <ElectricBike fontSize="large"/>, text: '100% Electric bikes for a greener future.' },
             { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
             { label: 'Happy Customers', icon: <EmojiEmotions fontSize="large"/>, text: 'Delivering smiles with every order.' },
-            { label: 'Lower Delivery Fees', icon: <EmojiEmotions fontSize="large"/>, text: 'Save money with our gas free delivery rates.' },
           ].map((item, index) => (
             <Grid item xs={12} md={4} key={index}>
               <Card 
@@ -101,7 +101,7 @@ export default function AboutPage() {
                 <Box 
                   sx={{ 
                     color: 'primary.main', 
-                    bgcolor: '#E3F2FD', // Very light blue based on your primary
+                    bgcolor: '#fdf1e3ff', 
                     width: 70,
                     height: 70,
                     borderRadius: '50%',
@@ -136,7 +136,7 @@ export default function AboutPage() {
               alt="Delivery Rider"
               sx={{ 
                 width: '100%', 
-                borderRadius: 6, // Using a specific visual radius
+                borderRadius: 6, 
                 boxShadow: 4 
               }}
             />
@@ -175,16 +175,7 @@ export default function AboutPage() {
           </Grid>
           {/* Image Side */}
           <Grid item xs={12} md={6}>
-             <Box 
-              component="img"
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTYq6u_cKjrS2c0JL7p2V4PWvDKaKrfcXlvw&s"
-              alt="Chef cooking"
-              sx={{ 
-                width: '100%', 
-                borderRadius: 6, 
-                boxShadow: 4
-              }}
-            />
+             
           </Grid>
         </Grid>
       </Container>
@@ -196,22 +187,30 @@ export default function AboutPage() {
             Ready to get started?
           </Typography>
           
-          <Grid container spacing={2}>
+          {/* FIX: Added justifyContent="center" and increased spacing */}
+          <Grid container spacing={4} justifyContent="center">
+             
              {/* Card 1: Customer */}
-            <Grid item xs={12} md={2}>
+             {/* FIX: Changed width from md={2} to md={4} */}
+            <Grid item xs={12} md={4}>
               <CTA_Card 
                 title="Order Food" 
                 image="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80"
                 buttonText="Order Now"
                 color="primary"
+                link="/home"
               />
             </Grid>
-            <Grid item xs={12} md={2}>
+            
+            {/* Card 2: Explore */}
+            {/* FIX: Changed width from md={2} to md={4} */}
+            <Grid item xs={12} md={4}>
               <CTA_Card 
-                title="Explore Differents Foods" 
+                title="Explore Different Foods" 
                 image="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80"
                 buttonText="Explore Now"
                 color="primary"
+                link="/explore"
               />
             </Grid>
           </Grid>
@@ -223,7 +222,8 @@ export default function AboutPage() {
 }
 
 // Helper Component for the Bottom Cards
-function CTA_Card({ title, image, buttonText, color }) {
+// Add 'link' to the props list here -----------------v
+function CTA_Card({ title, image, buttonText, color, link }) {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardMedia
@@ -240,6 +240,7 @@ function CTA_Card({ title, image, buttonText, color }) {
           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         </Typography>
         <Button 
+          href={link} // <--- ADD THIS LINE to use the link
           variant="contained" 
           color={color} 
           fullWidth
