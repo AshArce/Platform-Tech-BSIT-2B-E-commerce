@@ -2,65 +2,62 @@
 'use client';
 
 import React from 'react';
-import { Card, CardActions, CardContent, CardMedia, Button, Typography, Link as MuiLink } from '@mui/material';
+import { Card, CardActions, CardContent, CardMedia, Button, Typography, Box, CardActionArea } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import NextLink from 'next/link'; 
 
-const ProductCard = ({ product, onAddToCart }) => {
-  const { id, name, price, description, imageUrl, inStock } = product;
-  
-  const detailRoute = `/products/${id}`; 
+// Note: onProductClick replaces the old NextLink logic
+const ProductCard = ({ product, onProductClick }) => {
+  const { name, price, description, imageUrl, inStock } = product;
 
   return (
-    <Card sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* 1. Image Link - The "New Way" */}
-      <MuiLink 
-        component={NextLink} 
-        href={detailRoute} 
-        underline="none" 
-        color="inherit"
-      >
+    <Card 
+      sx={{ 
+        maxWidth: 345, 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: 'transform 0.2s',
+        '&:hover': { transform: 'scale(1.02)' } 
+      }}
+    >
+      {/* 1. Make the top part clickable to open modal */}
+      <CardActionArea onClick={() => onProductClick(product)} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
         <CardMedia
           component="img"
           height="140"
           image={imageUrl}
           alt={name}
-          sx={{ cursor: 'pointer' }}
         />
-      </MuiLink>
-
-      <CardContent sx={{ flexGrow: 1 }}>
-        {/* 2. Text Link - The "New Way" */}
-        <MuiLink 
-          component={NextLink} 
-          href={detailRoute} 
-          underline="hover" 
-          color="text.primary"
-        >
-          <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
             {name}
           </Typography>
-        </MuiLink>
+          <Typography variant="h6" color="primary.main" sx={{ mb: 1 }}>
+            ₱{price.toFixed(2)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{
+             display: '-webkit-box',
+             overflow: 'hidden',
+             WebkitBoxOrient: 'vertical',
+             WebkitLineClamp: 2, // Limit description lines
+          }}>
+            {description}
+          </Typography>
+        </CardContent>
+      </CardActionArea>
 
-        <Typography variant="h5" color="text.primary" sx={{ mb: 1.5 }}>
-          ₱{price.toFixed(2)}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {description}
-        </Typography>
-      </CardContent>
-      
-      <CardActions>
+      {/* 2. Direct Add Button (Optional: Can also just open modal) */}
+      <CardActions sx={{ p: 2, pt: 0 }}>
         <Button
-          size="small"
+          fullWidth
           variant="contained"
-          color="primary"
+          color="secondary"
           startIcon={<AddShoppingCartIcon />}
-          onClick={() => onAddToCart(product)}
+          onClick={() => onProductClick(product)} // Opens modal to select options
           disabled={!inStock}
+          sx={{ borderRadius: 2 }}
         >
-          {inStock ? 'Add' : 'No Stock'}
+          {inStock ? 'Add' : 'Sold Out'}
         </Button>
       </CardActions>
     </Card>
