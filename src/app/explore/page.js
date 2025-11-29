@@ -115,7 +115,7 @@ export default function ExplorePage() {
       </Typography>
 
       {/* CONTROLS */}
-      <Box sx={{ mb: 4, position: 'sticky', top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
+      <Box sx={{ mb: 4, position: 'relative', top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 8 }}>
             <TextField
@@ -156,6 +156,8 @@ export default function ExplorePage() {
         <Stack 
           direction="row" 
           spacing={1} 
+          // 👇 UPDATE: Center on larger screens, Start on mobile (for scrolling safety)
+          justifyContent={{ xs: 'flex-start', md: 'center' }}
           sx={{ 
             mt: 2, 
             overflowX: 'auto', 
