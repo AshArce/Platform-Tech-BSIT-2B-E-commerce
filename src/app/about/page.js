@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Container, 
@@ -10,17 +10,86 @@ import {
   CardContent,
   CardMedia,
   useTheme,
-  Paper
+  Paper,
+  Avatar,
+  Dialog,            
+  DialogTitle,       
+  DialogContent,     
+  DialogContentText, 
+  DialogActions,     
+  TextField,         
+  IconButton,
+  MenuItem,
+  Snackbar, // Added for success message
+  Alert     // Added for styling the success message
 } from '@mui/material';
 import { 
   ElectricBike, 
   Storefront, 
-  EmojiEmotions, 
-  ArrowForward 
+  EmojiEmotions,
+  ArrowForward, 
+  CheckCircleOutline,
+  Close as CloseIcon 
 } from '@mui/icons-material';
 
 export default function AboutPage() {
   const theme = useTheme();
+
+  // ==========================================
+  // STATE MANAGEMENT
+  // ==========================================
+  
+  // 1. RIDER FORM STATE
+  const [openRiderForm, setOpenRiderForm] = useState(false);
+  const handleOpenRider = () => setOpenRiderForm(true);
+  const handleCloseRider = () => setOpenRiderForm(false);
+
+  // 2. PARTNER FORM STATE
+  const [openPartnerForm, setOpenPartnerForm] = useState(false);
+  const handleOpenPartner = () => setOpenPartnerForm(true);
+  const handleClosePartner = () => setOpenPartnerForm(false);
+
+  // 3. SUCCESS MESSAGE STATE (SNACKBAR)
+  const [openSuccess, setOpenSuccess] = useState(false);
+
+  // Function to handle "Submit" actions
+  const handleSubmit = (type) => {
+    // 1. Close the specific form
+    if (type === 'rider') setOpenRiderForm(false);
+    if (type === 'partner') setOpenPartnerForm(false);
+    
+    // 2. Open the success message
+    setOpenSuccess(true);
+  };
+
+  const handleCloseSuccess = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setOpenSuccess(false);
+  };
+
+  // DATA ARRAY
+  const teamMembers = [
+    { 
+      name: 'John Ashley Arcebuche', 
+      role: 'Founder / Developer', 
+      img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&q=80' 
+    },
+    { 
+      name: 'Riddik De Leon', 
+      role: 'Member / Fishball Vendor', 
+      img: '../image/Teams/riddik.jpg' 
+    },
+    { 
+      name: 'Marco Jay V Reyes', 
+      role: 'Member / Designer', 
+      img: '../image/Teams/marco.jpg' 
+    },
+    { 
+      name: 'Casely Aguilar', 
+      role: 'Member / Designer', 
+      img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' 
+    },
+  ];
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
@@ -30,7 +99,7 @@ export default function AboutPage() {
         sx={{ 
           bgcolor: 'white', 
           pt: { xs: 8, md: 12 }, 
-          pb: { xs: 8, md: 10 },
+          pb: { xs: 12, md: 14 },
           textAlign: 'center',
           overflow: 'hidden'
         }}
@@ -56,7 +125,8 @@ export default function AboutPage() {
               mx: 'auto', 
               lineHeight: 1.6,
               fontWeight: 400,
-              mb: 4
+              mb: 4,
+              fontSize: { xs: '1rem', md: '1.25rem' }
             }}
           >
              E-Bike Express is redefining delivery with an eco-friendly fleet. 
@@ -76,8 +146,7 @@ export default function AboutPage() {
       </Box>
 
       {/* 2. VALUES GRID (Floating Cards) */}
-      <Container maxWidth="lg" sx={{ mt: -6, mb: 12, position: 'relative', zIndex: 2 }}>
-        {/* FIX: Added justifyContent="center" here */}
+      <Container maxWidth="lg" sx={{ mt: { xs: -8, md: -10 }, mb: 12, position: 'relative', zIndex: 2 }}>
         <Grid container spacing={2} justifyContent="center">
           {[
             { label: 'Eco-Friendly Fleet', icon: <ElectricBike fontSize="large"/>, text: '100% Electric bikes for a greener future.' },
@@ -94,6 +163,8 @@ export default function AboutPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
+                  borderRadius: 4,
+                  boxShadow: '0px 10px 30px rgba(0,0,0,0.08)',
                   transition: 'transform 0.3s ease-in-out',
                   '&:hover': { transform: 'translateY(-8px)' }
                 }}
@@ -125,58 +196,196 @@ export default function AboutPage() {
         </Grid>
       </Container>
 
-      {/* 3. STORY SECTION: RIDERS (Zig-Zag Layout) */}
-      <Container maxWidth="lg" sx={{ mb: 12 }}>
-        <Grid container spacing={8} alignItems="center">
-          {/* Image Side */}
-          <Grid item xs={12} md={6}>
-            <Box 
-              component="img"
-              src="https://iloilobikeshop.com/cdn/shop/files/1325363_12315475-f5f5-4338-85ad-4f43583be050.jpg?v=1730006938&width=1946"
-              alt="Delivery Rider"
-              sx={{ 
-                width: '100%', 
-                borderRadius: 6, 
-                boxShadow: 4 
-              }}
-            />
-          </Grid>
-          {/* Text Side */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 'bold', letterSpacing: 1.5, fontSize: '0.9rem' }}>
-              OUR RIDERS
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', mb: 2, mt: 1 }}>
-              Ride with pride.
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, mb: 4, fontSize: '1.1rem' }}>
-              Become a hero on wheels. Our riders enjoy flexible hours, competitive earnings, 
-              and the joy of riding silent, efficient e-bikes. Join the green revolution today.
-            </Typography>
-          </Grid>
-        </Grid>
-      </Container>
+      {/* ========================================================= */}
+      {/* 3 & 4. JOIN THE MOVEMENT SECTION                          */}
+      {/* ========================================================= */}
+      <Box sx={{ bgcolor: 'grey.50', py: { xs: 6, md: 10 }, mb: 12 }}>
+        <Container maxWidth="lg">
+            <Box sx={{ textAlign: 'center', mb: 8 }}>
+                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 'bold', letterSpacing: 1.5 }}>
+                    BE PART OF THE CHANGE
+                </Typography>
+                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, fontSize: { xs: '2rem', md: '3rem'} }}>
+                    Join the Movement
+                </Typography>
+            </Box>
 
-      {/* 4. STORY SECTION: PARTNERS (Reversed Layout) */}
-      <Container maxWidth="lg" sx={{ mb: 12 }}>
-        <Grid container spacing={8} alignItems="center" direction={{ xs: 'column-reverse', md: 'row' }}>
-          {/* Text Side */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 'bold', letterSpacing: 1.5, fontSize: '0.9rem' }}>
-              OUR PARTNERS
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', mb: 2, mt: 1 }}>
-              Grow your business.
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, mb: 4, fontSize: '1.1rem' }}>
-              Whether you run a street stall or a 5-star restaurant, E-Bike Express helps you 
-              reach more hungry customers. We handle the logistics; you focus on the cooking.
-            </Typography>
-          </Grid>
-          {/* Image Side */}
-          <Grid item xs={12} md={6}>
-             
-          </Grid>
+            <Grid container spacing={4} justifyContent="center" alignItems="stretch">
+                
+                {/* RIDER CARD */}
+                <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                    <Paper 
+                        elevation={0}
+                        sx={{ 
+                            p: { xs: 3, md: 5 }, 
+                            borderRadius: 6, 
+                            height: '100%', 
+                            border: '1px solid',
+                            borderColor: 'grey.200',
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            transition: 'all 0.3s',
+                            '&:hover': { borderColor: 'primary.main', boxShadow: 4 }
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                            <Box sx={{ p: 1.5, bgcolor: 'grey.900', color: 'white', borderRadius: 3, mr: 2 }}>
+                                <ElectricBike />
+                            </Box>
+                            <Typography variant="h5" fontWeight={800}>For Riders</Typography>
+                        </Box>
+                        
+                        <Typography variant="h4" fontWeight={900} gutterBottom>
+                            Ride with pride.
+                        </Typography>
+                        
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7, flexGrow: 1 }}>
+                            Join a community of riders who are making the city greener, one delivery at a time.
+                            Enjoy flexible hours and competitive earnings.
+                        </Typography>
+
+                        <Box sx={{ mb: 4 }}>
+                            {['Flexible Schedule', 'Weekly Earnings', 'Eco-friendly Bike Provided'].map((feat) => (
+                                <Box key={feat} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <CheckCircleOutline sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
+                                    <Typography variant="body2" fontWeight={500}>{feat}</Typography>
+                                </Box>
+                            ))}
+                        </Box>
+
+                        <Button 
+                            onClick={handleOpenRider} 
+                            variant="contained" 
+                            size="large" 
+                            endIcon={<ArrowForward />}
+                            sx={{ 
+                                bgcolor: 'grey.900', 
+                                color: 'white', 
+                                py: 1.5,
+                                borderRadius: 3,
+                                '&:hover': { bgcolor: 'grey.800' },
+                                mt: 'auto'
+                            }}
+                        >
+                            Apply to Ride
+                        </Button>
+                    </Paper>
+                </Grid>
+
+                {/* PARTNER CARD */}
+                <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                    <Paper 
+                        elevation={0}
+                        sx={{ 
+                            p: { xs: 3, md: 5 }, 
+                            borderRadius: 6, 
+                            height: '100%', 
+                            border: '1px solid',
+                            borderColor: 'grey.200',
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            transition: 'all 0.3s',
+                            '&:hover': { borderColor: 'primary.main', boxShadow: 4 }
+                        }}
+                    >
+                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                            <Box sx={{ p: 1.5, bgcolor: 'primary.main', color: 'white', borderRadius: 3, mr: 2 }}>
+                                <Storefront />
+                            </Box>
+                            <Typography variant="h5" fontWeight={800}>For Businesses</Typography>
+                        </Box>
+
+                        <Typography variant="h4" fontWeight={900} gutterBottom>
+                            Partner with us.
+                        </Typography>
+
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7, flexGrow: 1 }}>
+                            Whether you run a street stall or a restaurant, we help you reach more customers
+                            without increasing your carbon footprint.
+                        </Typography>
+
+                        <Box sx={{ mb: 4 }}>
+                            {['Reach New Customers', 'Zero Commission for 1st Month', 'Real-time Tracking'].map((feat) => (
+                                <Box key={feat} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <CheckCircleOutline sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
+                                    <Typography variant="body2" fontWeight={500}>{feat}</Typography>
+                                </Box>
+                            ))}
+                        </Box>
+
+                        <Button 
+                            onClick={handleOpenPartner}
+                            variant="contained" 
+                            color="primary"
+                            size="large" 
+                            endIcon={<ArrowForward />}
+                            sx={{ py: 1.5, borderRadius: 3, mt: 'auto' }}
+                        >
+                            Become a Partner
+                        </Button>
+                    </Paper>
+                </Grid>
+            </Grid>
+        </Container>
+      </Box>
+
+      {/* ============================================== */}
+      {/* 4.5 TEAM SECTION                               */}
+      {/* ============================================== */}
+      <Container maxWidth="lg" sx={{ mb: { xs: 8, md: 12 } }}>
+        <Typography 
+            variant="h3" 
+            sx={{ 
+                textAlign: 'center', 
+                fontWeight: 800, 
+                mb: { xs: 4, md: 6 }, 
+                color: 'text.primary',
+                fontSize: { xs: '2rem', md: '3rem' }
+            }}
+        >
+          Meet Our Team
+        </Typography>
+        
+        <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center">
+          {teamMembers.map((member, index) => (
+            <Grid item xs={6} sm={6} md={3} key={index}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Box 
+                  component="img"
+                  src={member.img} 
+                  alt={member.name}
+                  sx={{ 
+                    width: { xs: 120, sm: 160, md: 200 }, 
+                    height: { xs: 120, sm: 160, md: 200 }, 
+                    borderRadius: '50%', 
+                    objectFit: 'cover', 
+                    mb: 2, 
+                    boxShadow: 3,
+                    border: '4px solid white' 
+                  }}
+                />
+                <Typography 
+                    variant="h6" 
+                    fontWeight="bold"
+                    sx={{ 
+                        fontSize: { xs: '1rem', md: '1.25rem' }, 
+                        lineHeight: 1.2,
+                        mb: 0.5
+                    }}
+                >
+                  {member.name}
+                </Typography>
+                <Typography 
+                    variant="body2" 
+                    color="primary.main" 
+                    fontWeight="medium"
+                    sx={{ fontSize: { xs: '0.75rem', md: '1rem' } }}
+                >
+                  {member.role}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
         </Grid>
       </Container>
 
@@ -186,12 +395,7 @@ export default function AboutPage() {
           <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 800, mb: 6, color: 'text.primary' }}>
             Ready to get started?
           </Typography>
-          
-          {/* FIX: Added justifyContent="center" and increased spacing */}
           <Grid container spacing={4} justifyContent="center">
-             
-             {/* Card 1: Customer */}
-             {/* FIX: Changed width from md={2} to md={4} */}
             <Grid item xs={12} md={4}>
               <CTA_Card 
                 title="Order Food" 
@@ -201,9 +405,6 @@ export default function AboutPage() {
                 link="/home"
               />
             </Grid>
-            
-            {/* Card 2: Explore */}
-            {/* FIX: Changed width from md={2} to md={4} */}
             <Grid item xs={12} md={4}>
               <CTA_Card 
                 title="Explore Different Foods" 
@@ -217,12 +418,154 @@ export default function AboutPage() {
         </Container>
       </Box>
 
+      {/* =========================================== */}
+      {/* 6. POP-UP FORMS (DIALOGS)                   */}
+      {/* =========================================== */}
+
+      {/* --- A. RIDER APPLICATION FORM --- */}
+      <Dialog 
+        open={openRiderForm} 
+        onClose={handleCloseRider}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 4, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Typography variant="h5" component="span" fontWeight={800}>
+            Join as a Rider
+          </Typography>
+          <IconButton onClick={handleCloseRider}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 3 }}>
+            Fill out the details below and our team will get back to you within 24 hours.
+          </DialogContentText>
+          <Box component="form" noValidate autoComplete="off">
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField label="Full Name" fullWidth variant="outlined" required />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField label="Phone Number" fullWidth variant="outlined" required type="tel" />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField label="Email Address" fullWidth variant="outlined" required type="email" />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField label="City / Area" fullWidth variant="outlined" required />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField 
+                  label="Do you own an electric bike?" 
+                  fullWidth 
+                  variant="outlined" 
+                  select 
+                  defaultValue=""
+                >
+                  <MenuItem value="yes">Yes, I have my own e-bike</MenuItem>
+                  <MenuItem value="no">No, I need to rent one</MenuItem>
+                </TextField>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={handleCloseRider} color="inherit" size="large" sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
+          {/* UPDATED SUBMIT BUTTON */}
+          <Button onClick={() => handleSubmit('rider')} variant="contained" color="primary" size="large" sx={{ borderRadius: 2, px: 4 }}>
+            Submit Application
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* --- B. PARTNER APPLICATION FORM --- */}
+      <Dialog 
+        open={openPartnerForm} 
+        onClose={handleClosePartner}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 4, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Typography variant="h5" component="span" fontWeight={800}>
+            Become a Business Partner
+          </Typography>
+          <IconButton onClick={handleClosePartner}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 3 }}>
+            Ready to grow your business? Tell us about your store and we'll help you get set up.
+          </DialogContentText>
+          <Box component="form" noValidate autoComplete="off">
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField label="Business Name" fullWidth variant="outlined" required />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField label="Owner / Contact Person" fullWidth variant="outlined" required />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField label="Phone Number" fullWidth variant="outlined" required type="tel" />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField label="Email Address" fullWidth variant="outlined" required type="email" />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField label="Business Address" fullWidth variant="outlined" required />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField 
+                  label="Business Type" 
+                  fullWidth 
+                  variant="outlined" 
+                  select 
+                  defaultValue=""
+                >
+                  <MenuItem value="restaurant">Restaurant / Cafe</MenuItem>
+                  <MenuItem value="street_food">Street Food Stall</MenuItem>
+                  <MenuItem value="grocery">Grocery / Market</MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </TextField>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={handleClosePartner} color="inherit" size="large" sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
+          {/* UPDATED SUBMIT BUTTON */}
+          <Button onClick={() => handleSubmit('partner')} variant="contained" color="primary" size="large" sx={{ borderRadius: 2, px: 4 }}>
+            Submit Partner Request
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* =========================================== */}
+      {/* 7. SUCCESS MESSAGE SNACKBAR (TOAST)         */}
+      {/* =========================================== */}
+      <Snackbar 
+        open={openSuccess} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%', borderRadius: 2, boxShadow: 3 }}>
+          Application Submitted Successfully! Our team will contact you soon.
+        </Alert>
+      </Snackbar>
+
     </Box>
   );
 }
 
 // Helper Component for the Bottom Cards
-// Add 'link' to the props list here -----------------v
 function CTA_Card({ title, image, buttonText, color, link }) {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -240,11 +583,12 @@ function CTA_Card({ title, image, buttonText, color, link }) {
           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         </Typography>
         <Button 
-          href={link} // <--- ADD THIS LINE to use the link
+          href={link}
           variant="contained" 
           color={color} 
           fullWidth
           size="large"
+          sx={{ borderRadius: 2, py: 1.5 }}
         >
           {buttonText}
         </Button>
