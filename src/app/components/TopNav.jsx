@@ -48,7 +48,7 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
   ];
 
   const utilityItems = [
-    { name: "Settings", icon: <SettingsIcon />, href: "/account/settings" },
+    { name: "Settings", icon: <SettingsIcon />, href: "/settings" },
     { name: "About Us", icon: <InfoIcon />, href: "/about" },
   ];
 
