@@ -12,7 +12,7 @@ const ProductCard = ({ product, onAddToCart }) => {
   const detailRoute = `/products/${id}`; 
 
   return (
-    <Card sx={{ maxWidth: 345, height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       
       {/* 1. Image Link - The "New Way" */}
       <MuiLink 
