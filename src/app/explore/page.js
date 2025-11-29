@@ -115,7 +115,7 @@ export default function ExplorePage() {
       </Typography>
 
       {/* CONTROLS */}
-      <Box sx={{ mb: 4, position: 'relative', top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
+      <Box sx={{ mb: 4, position: 'relative', bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 8 }}>
             <TextField
