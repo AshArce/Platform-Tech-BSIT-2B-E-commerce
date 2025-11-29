@@ -230,11 +230,6 @@ export default function SettingsPage() {
                     />
                     <div style={styles.divider} />
                     <NavigationItem
-                        title="About"
-                        onClick={() => handleNavClick('About')}
-                    />
-                    <div style={styles.divider} />
-                    <NavigationItem
                         title="Help / FAQ"
                         onClick={() => handleNavClick('Help / FAQ')}
                     />
