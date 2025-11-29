@@ -76,7 +76,7 @@ export default function AboutPage() {
       </Box>
 
       {/* 2. VALUES GRID (Floating Cards) */}
-      <Container maxWidth="lg" sx={{ mt: -6, mb: 12, position: 'relative', zIndex: 2 }}>
+      <Container maxWidth="lg" sx={{ mt: -6, mb: 12, position: 'relative', zIndex: 2 , display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
         <Grid container spacing={3}>
           {[
             { label: 'Eco-Friendly Fleet', icon: <ElectricBike fontSize="large"/>, text: '100% Electric bikes for a greener future.' },

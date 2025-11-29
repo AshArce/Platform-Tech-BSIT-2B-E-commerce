@@ -6,7 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import MUIProvider from './components/MUIProvider'; 
 import TopNav from './components/TopNav'; 
 import MainNav from './components/MainNav';
-import AuthGuard from './components/AuthGuard'; // 1. Import the Guard
+import AuthGuard from './components/AuthGuard'; 
 
 export const metadata = {
   title: 'E-Bike Express', 

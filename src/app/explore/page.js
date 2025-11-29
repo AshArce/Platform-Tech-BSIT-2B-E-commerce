@@ -1,10 +1,11 @@
 // src/app/explore/page.js
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Container, Grid, Typography, TextField, InputAdornment, 
-  Box, Chip, FormControl, Select, MenuItem, Snackbar, Alert, Stack
+  Box, Chip, FormControl, Select, MenuItem, Snackbar, Alert, Stack, 
+  Pagination, useTheme, useMediaQuery // 1. Import Hooks
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -12,20 +13,38 @@ import ProductCard from '../components/ProductCard';
 import { products } from '../../data/products';
 import { useCart } from '../context/CartContext';
 
-// This is the variable causing the issue - it must only appear ONCE
 const categories = ['All', 'Pizza', 'Burger', 'Drinks', 'Noodles', 'Rice', 'Dessert'];
 
 export default function ExplorePage() {
   const { addToCart } = useCart();
+  const theme = useTheme();
+
+  // 2. Detect Screen Size
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); // Large screens
+  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg')); // Medium screens
+
+  // 3. Dynamic Items Per Page Logic
+  let itemsPerPage = 20; // Default (Mobile)
   
-  // States for UI Controls
+  if (isDesktop) {
+    itemsPerPage = 20; // Desktop: 4 per row * 5 rows = 20
+  } else if (isTablet) {
+    itemsPerPage = 21; // Tablet: 3 per row * 7 rows = 21 (Odd number, perfectly fills rows)
+  }
+  // Mobile falls back to 20: 2 per row * 10 rows
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('popular'); // popular, lowToHigh, highToLow, aToZ
+  const [sortBy, setSortBy] = useState('popular');
+  const [page, setPage] = useState(1);
   
-  // Snackbar State
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [lastAddedItem, setLastAddedItem] = useState('');
+
+  // Reset page if screen size changes (to prevent viewing empty pages)
+  useEffect(() => {
+    setPage(1);
+  }, [itemsPerPage]);
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -33,11 +52,25 @@ export default function ExplorePage() {
     setOpenSnackbar(true);
   };
 
-  // --- FILTERING & SORTING LOGIC ---
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setPage(1); 
+  };
+
+  const handleCategoryClick = (cat) => {
+    setSelectedCategory(cat);
+    setPage(1); 
+  };
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // --- FILTERING & SORTING ---
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    // 1. Search Filter
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(p => 
@@ -46,12 +79,10 @@ export default function ExplorePage() {
       );
     }
 
-    // 2. Category Filter
     if (selectedCategory !== 'All') {
       result = result.filter(p => p.category === selectedCategory);
     }
 
-    // 3. Sorting Logic
     switch (sortBy) {
       case 'lowToHigh':
         result.sort((a, b) => a.price - b.price);
@@ -69,18 +100,23 @@ export default function ExplorePage() {
     return result;
   }, [searchQuery, selectedCategory, sortBy]);
 
+  // 4. USE DYNAMIC 'itemsPerPage' FOR PAGINATION
+  const count = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, pb: 10 }}>
       
-      <Typography variant="h4" sx={{fontWeight: 'bold', mb: 3 }}>
+      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
         Explore Menu
       </Typography>
 
-      {/* CONTROLS SECTION */}
-      <Box sx={{ mb: 4, top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
-        
+      {/* CONTROLS */}
+      <Box sx={{ mb: 4, position: 'sticky', top: 70, bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          {/* Search Bar */}
           <Grid size={{ xs: 12, md: 8 }}>
             <TextField
               fullWidth
@@ -88,7 +124,7 @@ export default function ExplorePage() {
               variant="outlined"
               size="small"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -100,7 +136,6 @@ export default function ExplorePage() {
             />
           </Grid>
 
-          {/* Sort Dropdown */}
           <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth size="small" sx={{ bgcolor: 'white' }}>
               <Select
@@ -118,7 +153,6 @@ export default function ExplorePage() {
           </Grid>
         </Grid>
 
-        {/* Categories Chips */}
         <Stack 
           direction="row" 
           spacing={1} 
@@ -136,7 +170,7 @@ export default function ExplorePage() {
               label={cat}
               clickable
               color={selectedCategory === cat ? "primary" : "default"} 
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => handleCategoryClick(cat)}
               sx={{ 
                 fontWeight: selectedCategory === cat ? 'bold' : 'normal',
                 fontSize: '0.9rem'
@@ -148,20 +182,46 @@ export default function ExplorePage() {
 
       {/* RESULTS GRID */}
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-        Showing {filteredProducts.length} results
+        Showing {paginatedProducts.length} results (Page {page} of {count})
       </Typography>
 
-      {filteredProducts.length > 0 ? (
-        <Grid container spacing={3}>
-          {filteredProducts.map((product) => (
-            <Grid key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <ProductCard 
-                product={product} 
-                onAddToCart={handleAddToCart} 
+      {paginatedProducts.length > 0 ? (
+        <>
+          <Grid container spacing={2}>
+            {paginatedProducts.map((product) => (
+              <Grid 
+                key={product.id} 
+                // 5. RESPONSIVE GRID LAYOUT
+                size={{ 
+                  xs: 6,  // Mobile: 2 items per row
+                  md: 4,  // Tablet: 3 items per row
+                  lg: 3   // Desktop: 4 items per row
+                }}
+              >
+                <ProductCard 
+                  product={product} 
+                  onAddToCart={handleAddToCart} 
+                />
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Pagination */}
+          {count > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <Pagination 
+                count={count} 
+                page={page} 
+                onChange={handlePageChange} 
+                color="primary" 
+                size="large"
+                // Hide Previous/Next on very small screens if needed, 
+                // or use siblingCount={0} to save space
+                siblingCount={0} 
               />
-            </Grid>
-          ))}
-        </Grid>
+            </Box>
+          )}
+        </>
       ) : (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant="h6" color="text.secondary">
