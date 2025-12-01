@@ -1,4 +1,4 @@
-// src/app/cart/page.js (RENAMED FROM CHECKOUT)
+// src/app/cart/page.js
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -7,39 +7,42 @@ import LocalMallIcon from '@mui/icons-material/LocalMall';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useCart } from '../context/CartContext';
 import CartItem from '../components/CartItem'; 
-import { useRouter } from 'next/navigation'; // Import Router
+import { useRouter } from 'next/navigation';
 
-const CartPage = () => { // Renamed Component
-  const { cartItems, setCheckoutItems } = useCart(); // Import setter
+const CartPage = () => {
+  const { cartItems, setCheckoutItems } = useCart();
   const router = useRouter();
   
+  // 1. UPDATED: Track 'cartId' instead of 'id'
   const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => {
+    // Select all by default on load using cartId
     if (cartItems.length > 0 && selectedIds.length === 0) {
-        setSelectedIds(cartItems.map(item => item.id));
+        setSelectedIds(cartItems.map(item => item.cartId)); // 🚨 FIX
     }
   }, [cartItems]);
 
-  const handleToggleItem = (id) => {
-    if (selectedIds.includes(id)) setSelectedIds(selectedIds.filter(itemId => itemId !== id));
-    else setSelectedIds([...selectedIds, id]);
+  const handleToggleItem = (cartId) => { // 🚨 FIX: Expect cartId
+    if (selectedIds.includes(cartId)) setSelectedIds(selectedIds.filter(id => id !== cartId));
+    else setSelectedIds([...selectedIds, cartId]);
   };
 
   const handleSelectAll = (event) => {
-    if (event.target.checked) setSelectedIds(cartItems.map(item => item.id));
+    if (event.target.checked) setSelectedIds(cartItems.map(item => item.cartId)); // 🚨 FIX
     else setSelectedIds([]);
   };
 
-  const selectedItemsList = cartItems.filter(item => selectedIds.includes(item.id));
+  // 2. UPDATED: Filter using cartId
+  const selectedItemsList = cartItems.filter(item => selectedIds.includes(item.cartId));
+  
   const subtotal = selectedItemsList.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const deliveryFee = selectedIds.length > 0 ? 5.00 : 0; 
   const finalTotal = (subtotal + deliveryFee).toFixed(2);
 
-  // --- NEW HANDLER: Go to Checkout ---
   const handleProceedToCheckout = () => {
-    setCheckoutItems(selectedItemsList); // Save selected items to global state
-    router.push('/checkout'); // Navigate to the Payment Page
+    setCheckoutItems(selectedItemsList); 
+    router.push('/checkout'); 
   };
   
   if (cartItems.length === 0) {
@@ -76,7 +79,12 @@ const CartPage = () => { // Renamed Component
             </Paper>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {cartItems.map((item) => (
-                <CartItem key={item.id} item={item} isSelected={selectedIds.includes(item.id)} onToggle={handleToggleItem} />
+                <CartItem 
+                  key={item.cartId} // 🚨 FIX: Use cartId as key
+                  item={item} 
+                  isSelected={selectedIds.includes(item.cartId)} // 🚨 FIX: Check cartId
+                  onToggle={handleToggleItem} 
+                />
               ))}
             </Box>
           </Grid>
@@ -85,12 +93,11 @@ const CartPage = () => { // Renamed Component
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, position: 'sticky', top: 100, border: '1px solid #eee', display: { xs: 'none', md: 'block' } }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Order Summary</Typography>
               <Box sx={{ my: 2 }}>
-                <Box display="flex" justifyContent="space-between" mb={1}><Typography color="text.secondary">Subtotal</Typography><Typography fontWeight="medium">${subtotal.toFixed(2)}</Typography></Box>
-                <Box display="flex" justifyContent="space-between" mb={1}><Typography color="text.secondary">Delivery Fee</Typography><Typography fontWeight="medium">${deliveryFee.toFixed(2)}</Typography></Box>
+                <Box display="flex" justifyContent="space-between" mb={1}><Typography color="text.secondary">Subtotal</Typography><Typography fontWeight="medium">₱{subtotal.toFixed(2)}</Typography></Box>
+                <Box display="flex" justifyContent="space-between" mb={1}><Typography color="text.secondary">Delivery Fee</Typography><Typography fontWeight="medium">₱{deliveryFee.toFixed(2)}</Typography></Box>
                 <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
-                <Box display="flex" justifyContent="space-between"><Typography variant="h6" fontWeight="bold">Total</Typography><Typography variant="h5" fontWeight="bold" color="primary.main">${finalTotal}</Typography></Box>
+                <Box display="flex" justifyContent="space-between"><Typography variant="h6" fontWeight="bold">Total</Typography><Typography variant="h5" fontWeight="bold" color="primary.main">₱{finalTotal}</Typography></Box>
               </Box>
-              {/* CLICK HANDLER UPDATED */}
               <Button variant="contained" color="primary" size="large" fullWidth disabled={selectedIds.length === 0} onClick={handleProceedToCheckout} sx={{ mt: 2, py: 1.5, borderRadius: 2, fontSize: '1.1rem', textTransform: 'none' }} endIcon={<ArrowForwardIcon />}>
                 Checkout ({selectedIds.length})
               </Button>
@@ -101,9 +108,8 @@ const CartPage = () => { // Renamed Component
 
       <Paper elevation={10} sx={{ position: 'fixed', bottom: 70, left: 0, right: 0, p: 2, bgcolor: 'white', borderTopLeftRadius: 16, borderTopRightRadius: 16, display: { xs: 'block', md: 'none' }, zIndex: 999 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box><Typography variant="body2" color="text.secondary">Total ({selectedIds.length} items)</Typography><Typography variant="h5" fontWeight="bold">${finalTotal}</Typography></Box>
+          <Box><Typography variant="body2" color="text.secondary">Total ({selectedIds.length} items)</Typography><Typography variant="h5" fontWeight="bold">₱{finalTotal}</Typography></Box>
         </Box>
-        {/* CLICK HANDLER UPDATED */}
         <Button variant="contained" color="primary" size="large" fullWidth disabled={selectedIds.length === 0} onClick={handleProceedToCheckout} sx={{ py: 1.5, borderRadius: 3, fontSize: '1rem', fontWeight: 'bold' }}>
           Checkout
         </Button>

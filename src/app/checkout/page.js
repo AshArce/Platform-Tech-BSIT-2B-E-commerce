@@ -21,14 +21,15 @@ export default function PaymentPage() {
   
   const [paymentMethod, setPaymentMethod] = useState('cash');
   
-  // 1. NEW STATE: Track if order was just placed to prevent auto-redirect
+  // 1. NEW STATE: Track if we successfully placed an order
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   
   const subtotal = checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const deliveryFee = 5.00;
   const finalTotal = (subtotal + deliveryFee).toFixed(2);
 
-  // 2. UPDATED EFFECT: Only redirect to cart if order was NOT just placed
+  // 2. UPDATED REDIRECT LOGIC
+  // Only redirect to cart if items are empty AND we haven't just placed an order.
   useEffect(() => {
     if (!isOrderPlaced && checkoutItems.length === 0) {
       router.push('/cart');
@@ -36,19 +37,20 @@ export default function PaymentPage() {
   }, [checkoutItems, router, isOrderPlaced]);
 
   const handlePlaceOrder = () => {
-    // 3. Set flag TRUE so the useEffect above ignores the empty cart
+    // 3. Set the flag to TRUE immediately
+    // This stops the useEffect above from kicking you back to the cart
     setIsOrderPlaced(true);
 
-    const paidItemIds = checkoutItems.map(item => item.id);
+    const paidItemIds = checkoutItems.map(item => item.cartId);
     const userId = currentUser ? currentUser.id : 0;
 
     processOrder(paidItemIds, finalTotal, userId);
     
-    // 4. Force navigation to Orders
+    // 4. NOW the redirect to Orders will work
     router.push('/orders');
   };
 
-  // Prevent flash of empty content (unless we just placed an order)
+  // Prevent flash of empty content (unless success)
   if (!isOrderPlaced && checkoutItems.length === 0) return null; 
 
   return (
@@ -95,8 +97,13 @@ export default function PaymentPage() {
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="h6" fontWeight="bold" mb={2}>Items ({checkoutItems.length})</Typography>
               {checkoutItems.map((item) => (
-                <Box key={item.id} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                  <Typography variant="body2">{item.quantity}x {item.name}</Typography>
+                <Box key={item.cartId} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                  <Box>
+                    <Typography variant="body2" fontWeight="bold">{item.quantity}x {item.name}</Typography>
+                    {item.selectedSize && (
+                        <Typography variant="caption" color="text.secondary">Size: {item.selectedSize}</Typography>
+                    )}
+                  </Box>
                   <Typography variant="body2" fontWeight="bold">₱{(item.price * item.quantity).toFixed(2)}</Typography>
                 </Box>
               ))}
@@ -140,4 +147,4 @@ export default function PaymentPage() {
       </Container>
     </Box>
   );
-}
+} 

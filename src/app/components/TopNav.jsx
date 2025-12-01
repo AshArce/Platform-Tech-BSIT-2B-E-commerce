@@ -1,8 +1,10 @@
+// src/app/components/TopNav.jsx
 "use client";
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // Added useRouter for logout redirect
+import { usePathname, useRouter } from 'next/navigation';
+import { useColorMode } from '../context/ThemeContext';
 
 // MUI Components
 import { 
@@ -19,7 +21,8 @@ import {
   ListItemIcon, 
   ListItemText, 
   Divider, 
-  Avatar 
+  Avatar,
+  Tooltip 
 } from '@mui/material';
 
 // MUI Icons
@@ -33,14 +36,16 @@ import InfoIcon from '@mui/icons-material/Info';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
 
-// Context Imports
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext'; // 1. Import Auth Context
+// 1. UPDATED ICONS (Cleaner look)
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
-// --- Internal Sidebar Component ---
-// Added 'onLogout' prop here
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+
+// --- Internal Sidebar Component (Unchanged) ---
 const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
-  
+  // ... (Keep the SidebarMenu code exactly as it was) ...
   const navItems = [
     { name: "Explore", icon: <ExploreIcon />, href: "/explore" },
     { name: "Orders", icon: <ShoppingBagIcon />, href: "/orders" },
@@ -53,85 +58,45 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
   ];
 
   return (
-    <Drawer
-      anchor="left"
-      open={isOpen}
-      onClose={onClose}
-    >
-      <Box
-        sx={{ width: 250 }}
-        role="presentation"
-        onClick={onClose}
-        onKeyDown={onClose}
-      >
-        {/* --- Profile Header Section --- */}
-        <Box
-          sx={{
-            p: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            borderBottom: 1,
-            borderColor: 'divider'
-          }}
-        >
-          {/* Dynamic Avatar and Name from AuthContext */}
-          <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', mb: 1.5 }}>
+    <Drawer anchor="left" open={isOpen} onClose={onClose}>
+      <Box sx={{ width: 280 }} role="presentation" onClick={onClose} onKeyDown={onClose}>
+        <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+          <Avatar sx={{ width: 64, height: 64, bgcolor: 'white', color: 'primary.main', mb: 1.5, fontWeight: 'bold' }}>
             {user?.name ? user.name[0].toUpperCase() : 'U'}
           </Avatar>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-            Hi, {user?.name || 'Guest'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            {user?.email || ''}
-          </Typography>
-
-          <ListItem disablePadding sx={{ width: '100%', justifyContent: 'center' }}>
-            <ListItemButton
-              sx={{ width: 'auto', p: 0.5 }}
-              component="a"
-              href="/dashboard"
-              onClick={onClose}
-            >
-              <ListItemIcon sx={{ minWidth: 28 }}><EditIcon fontSize="small" color="primary" /></ListItemIcon>
-              <ListItemText
-                primary="Edit Profile"
-                primaryTypographyProps={{ color: 'primary', fontSize: '14px' }}
-              />
-            </ListItemButton>
-          </ListItem>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>{user?.name || 'Guest'}</Typography>
+          <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>{user?.email || ''}</Typography>
+          <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+             <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.2)', px: 2, py: 0.5, borderRadius: 2, cursor: 'pointer' }}>
+                <EditIcon fontSize="small" sx={{ mr: 1, fontSize: 16 }} />
+                <Typography variant="caption" fontWeight="bold">Edit Profile</Typography>
+             </Box>
+          </Link>
         </Box>
-
-        {/* --- Navigation Links --- */}
-        <List>
+        <List sx={{ pt: 2 }}>
           {navItems.map((item) => (
             <ListItem key={item.name} disablePadding>
               <ListItemButton component="a" href={item.href} onClick={onClose}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ color: 'text.secondary' }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.name} />
               </ListItemButton>
             </ListItem>
           ))}
         </List>
-
-        <Divider />
-
-        {/* --- Utility Actions --- */}
+        <Divider sx={{ my: 1 }} />
         <List>
           {utilityItems.map((item) => (
             <ListItem key={item.name} disablePadding>
               <ListItemButton component="a" href={item.href} onClick={onClose}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ color: 'text.secondary' }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.name} />
               </ListItemButton>
             </ListItem>
           ))}
-
-          {/* Log Out Button */}
-          <ListItem disablePadding sx={{ mt: 2 }}>
+          <ListItem disablePadding sx={{ mt: 1 }}>
             <ListItemButton onClick={onLogout}> 
               <ListItemIcon><LogoutIcon color="error" /></ListItemIcon>
-              <ListItemText primary="Log Out" primaryTypographyProps={{ color: 'error.main' }} />
+              <ListItemText primary="Log Out" primaryTypographyProps={{ color: 'error.main', fontWeight: 'medium' }} />
             </ListItemButton>
           </ListItem>
         </List>
@@ -143,17 +108,20 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
 // --- Main TopNav Component ---
 const TopNav = () => {
   const { cartCount } = useCart();
-  const { currentUser, logout } = useAuth(); // 2. Get Real User Data & Logout Function
+  const { currentUser, logout } = useAuth(); 
   const pathname = usePathname();
   const router = useRouter();
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  // 2. USE GLOBAL THEME STATE
+  const { mode, toggleColorMode } = useColorMode();
+  const isDarkMode = mode === 'dark';
 
-  // Handle Logout Logic
   const handleLogout = () => {
-    logout();             // clear context
-    setIsDrawerOpen(false); // close sidebar
-    router.push('/');     // redirect to login/splash
+    logout();            
+    setIsDrawerOpen(false); 
+    router.push('/');     
   };
 
   if (pathname === '/' || pathname === '/auth') {
@@ -162,31 +130,53 @@ const TopNav = () => {
 
   return (
     <>
-      <AppBar position="sticky" sx={{ bgcolor: 'white', borderBottom: '1px solid #eee' }}>
+      <AppBar 
+        position="sticky" 
+        elevation={0}
+        sx={{ 
+            // 3. Make AppBar color dynamic
+            bgcolor: 'background.paper', 
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            color: 'text.primary'
+        }}
+      >
         <Toolbar>
-          
           <IconButton 
             size="large" 
             edge="start" 
+            color="inherit" 
             aria-label="menu" 
-            sx={{ mr: 2, color: 'text.primary' }}
-            onClick={() => setIsDrawerOpen(true)} 
+            sx={{ mr: 1 }} 
+            onClick={() => setIsDrawerOpen(true)}
           >
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', color: 'text.primary' }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: '800', letterSpacing: '-0.5px' }}>
             <Link href="/home" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
               E-BIKE EXPRESS
             </Link>
           </Typography>
 
-          <IconButton 
-            size="large" 
-            aria-label={`show ${cartCount} items in cart`} 
-            sx={{ color: 'text.primary' }}
-          >
-            <Link href="/cart" passHref>
+          {/* 4. CONNECT TOGGLE FUNCTION */}
+          <Tooltip title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+            <IconButton 
+                onClick={toggleColorMode} 
+                color="inherit"
+                sx={{ mr: 1 }}
+            >
+                {/* Visual Logic */}
+                {isDarkMode ? (
+                    <LightModeIcon sx={{ color: '#FFB300' }} /> // Sun
+                ) : (
+                    <DarkModeIcon sx={{ color: 'action.active' }} /> // Moon
+                )}
+            </IconButton>
+          </Tooltip>
+
+          <IconButton size="large" aria-label={`show ${cartCount} items in cart`} color="inherit">
+            <Link href="/cart" passHref style={{ color: 'inherit', display: 'flex' }}>
               <Badge badgeContent={cartCount} color="error">
                 <ShoppingCartIcon />
               </Badge>
@@ -196,7 +186,6 @@ const TopNav = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Pass currentUser and handleLogout to Sidebar */}
       <SidebarMenu 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
