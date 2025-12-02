@@ -138,8 +138,8 @@ export default function AboutPage() {
         <Grid container spacing={2} justifyContent="center">
           {[
             { label: 'Eco-Friendly Fleet', icon: <ElectricBike fontSize="large"/>, text: '100% Electric bikes for a greener future.' },
-            { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
             { label: 'Happy Customers', icon: <EmojiEmotions fontSize="large"/>, text: 'Delivering smiles with every order.' },
+            { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
           ].map((item, index) => (
             <Grid item xs={12} md={4} key={index}>
               <Card 
