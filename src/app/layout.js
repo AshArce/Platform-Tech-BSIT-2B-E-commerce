@@ -3,6 +3,7 @@
 import { Box } from '@mui/material'; 
 import { CartProvider } from './context/CartContext'; 
 import { AuthProvider } from './context/AuthContext'; 
+import { ProductProvider } from './context/ProductContext'; // Imported
 import MUIProvider from './components/MUIProvider'; 
 import TopNav from './components/TopNav'; 
 import MainNav from './components/MainNav';
@@ -19,20 +20,29 @@ export default function RootLayout({ children }) {
       <body>
         <MUIProvider>
           <AuthProvider>
-            <CartProvider>
-              {/* 2. Apply the AuthGuard inside the Providers */}
-              <AuthGuard>
-                <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                  <TopNav />
+            
+            {/* 1. Wrap with ProductProvider so we can manage products globally */}
+            <ProductProvider>
+              
+              <CartProvider>
+                {/* 2. Protect the Routes with AuthGuard */}
+                <AuthGuard>
                   
-                  <Box component="main" sx={{ flexGrow: 1, pb: { xs: 7, md: 0 } }}>
-                    {children}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    <TopNav />
+                    
+                    <Box component="main" sx={{ flexGrow: 1, pb: { xs: 7, md: 0 } }}>
+                      {children}
+                    </Box>
+
+                    <MainNav /> 
                   </Box>
 
-                  <MainNav /> 
-                </Box>
-              </AuthGuard>
-            </CartProvider>
+                </AuthGuard>
+              </CartProvider>
+
+            </ProductProvider>
+
           </AuthProvider>
         </MUIProvider>
       </body>

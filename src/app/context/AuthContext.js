@@ -11,42 +11,35 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [allUsers, setAllUsers] = useState(initialUsers);
-  
-  // 1. NEW STATE: Start as TRUE (We are loading/checking)
   const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
-    // Load Users
     const storedUsers = localStorage.getItem('FOODIE_USERS');
-    if (storedUsers) {
-      setAllUsers(JSON.parse(storedUsers));
-    } else {
-      localStorage.setItem('FOODIE_USERS', JSON.stringify(initialUsers));
-    }
+    if (storedUsers) setAllUsers(JSON.parse(storedUsers));
+    else localStorage.setItem('FOODIE_USERS', JSON.stringify(initialUsers));
 
-    // Load Session
     const storedSession = localStorage.getItem('FOODIE_CURRENT_USER');
-    if (storedSession) {
-      setCurrentUser(JSON.parse(storedSession));
-    }
+    if (storedSession) setCurrentUser(JSON.parse(storedSession));
     
-    // 2. DONE CHECKING: Set loading to false
     setIsLoading(false); 
   }, []);
 
-  // ... (Login, Register, Logout functions remain exactly the same) ...
-  // Just copy them from your previous file, they don't change.
+  // 🚨 UPDATED LOGIN FUNCTION
   const login = (identifier, password) => {
     const foundUser = allUsers.find((u) => {
       if (u.password !== password) return false;
       return (u.email === identifier || u.phone === identifier || u.username === identifier);
     });
+
     if (foundUser) {
       setCurrentUser(foundUser);
       localStorage.setItem('FOODIE_CURRENT_USER', JSON.stringify(foundUser));
-      return true;
+      
+      // Return an object with success AND the role
+      return { success: true, role: foundUser.role }; 
     }
-    return false;
+    
+    return { success: false, role: null };
   };
 
   const register = (userData) => {
@@ -60,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       email: userData.email,
       phone: userData.phone,
       password: userData.password,
-      role: 'Foodie Member', 
+      role: 'Foodie Member', // Default is normal User
       memberSince: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       avatarUrl: `https://via.placeholder.com/150?text=${userData.fullName.charAt(0).toUpperCase()}`
     };
@@ -79,7 +72,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    // 3. EXPORT isLoading
     <AuthContext.Provider value={{ currentUser, isLoading, login, logout, register }}>
       {children}
     </AuthContext.Provider>

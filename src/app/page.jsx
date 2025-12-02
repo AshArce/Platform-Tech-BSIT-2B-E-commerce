@@ -8,7 +8,7 @@ import {
   Paper, Link as MuiLink, Divider, IconButton, Alert, Collapse 
 } from '@mui/material';
 
-// ... (Keep all your Icon imports exactly the same) ...
+// Icons
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import EmailIcon from '@mui/icons-material/Email'; 
@@ -23,7 +23,7 @@ import { useAuth } from './context/AuthContext';
 
 const LoginPage = () => {
   const router = useRouter(); 
-  // 1. Extract 'register' from context
+  // 1. Extract auth functions
   const { login, register } = useAuth(); 
 
   const [view, setView] = useState('LANDING'); 
@@ -32,7 +32,7 @@ const LoginPage = () => {
 
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '', // In login view, this acts as 'identifier'
+    email: '', // Acts as identifier (email/phone/username)
     phone: '',
     password: '',
   });
@@ -49,16 +49,23 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (view === 'LOGIN') {
-      // Existing Login Logic
-      const isSuccess = login(formData.email, formData.password); // formData.email acts as identifier here
-      if (isSuccess) {
-        router.push('/home'); 
+      // 2. Call Login - It returns { success, role }
+      const result = login(formData.email, formData.password); 
+
+      if (result.success) {
+        console.log('Login Success! Role:', result.role);
+        
+        // 3. ROLE-BASED REDIRECT
+        if (result.role === 'System Administrator') {
+            router.push('/admin'); // Admin goes to Dashboard
+        } else {
+            router.push('/home'); // Customers go to Home
+        }
       } else {
         setLoginError('Invalid email/username or password.');
       }
     } else {
-      // 2. NEW SIGN UP LOGIC
-      // Basic validation
+      // Sign Up (New users are always Customers)
       if(!formData.fullName || !formData.email || !formData.password) {
         setLoginError('Please fill in all required fields.');
         return;
@@ -68,20 +75,18 @@ const LoginPage = () => {
 
       if (result.success) {
         console.log('Registration Success!');
-        router.push('/home'); // Redirect to home immediately
+        router.push('/home'); 
       } else {
-        setLoginError(result.message); // Show "Email already exists", etc.
+        setLoginError(result.message); 
       }
     }
   };
 
-  // ... (Keep renderLanding, renderForm, and the return statement EXACTLY as they were) ...
-  // (I will not repeat the UI code here to save space, just assume the rest of the file is the same)
-  
+  // --- RENDER HELPERS ---
+
   const renderLanding = () => (
     <Container maxWidth="xs">
-        {/* ... existing landing code ... */}
-        <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%' }}>
         <Button variant="contained" sx={{ width: '100%', py: 1.5, mb: 2, borderRadius: 2, bgcolor: 'black', color: 'white', '&:hover': { bgcolor: 'grey.900' } }} startIcon={<GoogleIcon />}>
           Continue With Google
         </Button>
@@ -117,7 +122,6 @@ const LoginPage = () => {
         <TextField fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense" value={formData.fullName} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }} />
       )}
 
-      {/* Note: I updated the label logic here slightly for clarity */}
       <TextField fullWidth name="email" label={isSignUp ? "Email Address" : "Email/Phone/Username"} variant="outlined" margin="dense" value={formData.email} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>) }} />
 
       {isSignUp && (

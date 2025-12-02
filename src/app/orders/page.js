@@ -2,13 +2,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Container, Typography, Box, Paper, Chip, Button, Divider, Stack, Grid } from '@mui/material';
+import { 
+  Container, Typography, Box, Paper, Chip, Button, Divider, Stack, Grid 
+} from '@mui/material';
+
+// Icons
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CancelIcon from '@mui/icons-material/Cancel';
-import MopedIcon from '@mui/icons-material/Moped'; // New Icon for Courier
+import MopedIcon from '@mui/icons-material/Moped';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'; // For pending refund
+
+// Contexts
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,9 +23,10 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'Delivered': return 'success';
     case 'Cooking': return 'warning';
-    case 'Waiting for Courier': return 'warning'; // Same as cooking or slight diff
+    case 'Waiting for Courier': return 'warning';
     case 'On the Way': return 'info';
-    case 'Refunded': return 'error';
+    case 'Refunded': return 'error'; // Red for final refund
+    case 'Refund Requested': return 'secondary'; // Purple/Orange for pending review
     case 'Cancelled': return 'error';
     default: return 'default';
   }
@@ -27,32 +35,37 @@ const getStatusColor = (status) => {
 const getStatusIcon = (status) => {
   switch (status) {
     case 'Cooking': return <RestaurantIcon fontSize="small" />;
-    case 'Waiting for Courier': return <MopedIcon fontSize="small" />; // New Icon
+    case 'Waiting for Courier': return <MopedIcon fontSize="small" />;
     case 'On the Way': return <LocalShippingIcon fontSize="small" />;
     case 'Delivered': return <CheckCircleIcon fontSize="small" />;
     case 'Cancelled': return <CancelIcon fontSize="small" />;
     case 'Refunded': return <RestartAltIcon fontSize="small" />;
+    case 'Refund Requested': return <HourglassEmptyIcon fontSize="small" />;
     default: return null;
   }
 };
 
+// Define Tabs
 const FILTER_TABS = [
   { label: 'All', statuses: [] }, 
-  // Add the new status to "To Receive"
   { label: 'To Receive', statuses: ['Cooking', 'Waiting for Courier', 'On the Way'] },
   { label: 'Delivered', statuses: ['Delivered'] },
-  { label: 'Refund/Cancel', statuses: ['Refunded', 'Cancelled'] } 
+  // Include 'Refund Requested' in this tab
+  { label: 'Refund/Cancel', statuses: ['Refunded', 'Cancelled', 'Refund Requested'] } 
 ];
 
 export default function OrdersPage() {
   const { orderHistory, updateOrderStatus } = useCart();
   const { currentUser } = useAuth();
+  
   const [activeTab, setActiveTab] = useState('All');
 
+  // 1. Filter by Current User
   const userOrders = currentUser 
     ? orderHistory.filter(order => order.userId === currentUser.id)
     : [];
 
+  // 2. Filter by Active Tab
   const filteredOrders = userOrders.filter(order => {
     if (activeTab === 'All') return true;
     const currentTabConfig = FILTER_TABS.find(tab => tab.label === activeTab);
@@ -65,6 +78,7 @@ export default function OrdersPage() {
         My Orders
       </Typography>
 
+      {/* Filter Tabs */}
       <Box sx={{ mb: 3, overflowX: 'auto', pb: 1 }}>
         <Stack direction="row" spacing={1}>
           {FILTER_TABS.map((tab) => (
@@ -81,6 +95,7 @@ export default function OrdersPage() {
         </Stack>
       </Box>
 
+      {/* Orders List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {filteredOrders.length === 0 ? (
            <Paper sx={{ p: 4, textAlign: 'center', bgcolor: '#fafafa' }} elevation={0}>
@@ -90,7 +105,7 @@ export default function OrdersPage() {
           filteredOrders.map((order) => (
             <Paper key={order.id} sx={{ p: 3, borderRadius: 2, border: '1px solid #eee' }} elevation={0}>
               
-              {/* Header */}
+              {/* Header: ID, Date, Status */}
               <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                 <Box>
                   <Typography variant="subtitle1" fontWeight="bold">{order.id}</Typography>
@@ -101,7 +116,7 @@ export default function OrdersPage() {
                   label={order.status} 
                   color={getStatusColor(order.status)} 
                   size="small" 
-                  variant={['Cooking', 'Waiting for Courier', 'On the Way'].includes(order.status) ? 'filled' : 'outlined'}
+                  variant={['Cooking', 'Waiting for Courier', 'On the Way', 'Refund Requested'].includes(order.status) ? 'filled' : 'outlined'}
                 />
               </Box>
 
@@ -118,7 +133,7 @@ export default function OrdersPage() {
                       </Typography>
                       {item.quantity > 1 && (
                         <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
-                          (₱{item.price.toFixed(2)} each)
+                          (@ ₱{item.price.toFixed(2)} each)
                         </Typography>
                       )}
                     </Grid>
@@ -133,6 +148,7 @@ export default function OrdersPage() {
 
               <Divider sx={{ my: 1, borderStyle: 'dashed' }} />
 
+              {/* Total */}
               <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                 <Typography variant="body2" color="text.secondary">Delivery Fee: ₱5.00</Typography>
                 <Box textAlign="right">
@@ -141,42 +157,70 @@ export default function OrdersPage() {
                 </Box>
               </Box>
 
-              {/* Actions */}
+              {/* --- ACTION BUTTONS --- */}
               <Box mt={3} display="flex" justifyContent="flex-end" gap={1}>
                 
-                {/* 1. Cooking: Allow Cancel */}
+                {/* 1. Cooking: Can Cancel */}
                 {order.status === 'Cooking' && (
-                  <Button variant="outlined" color="error" size="small" startIcon={<CancelIcon />} onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    size="small" 
+                    startIcon={<CancelIcon />} 
+                    onClick={() => updateOrderStatus(order.id, 'Cancelled')}
+                  >
                     Cancel Order
                   </Button>
                 )}
 
-                {/* 2. Waiting for Courier: No Action, just Info */}
+                {/* 2. Waiting: Info Only */}
                 {order.status === 'Waiting for Courier' && (
                   <Typography variant="caption" color="warning.main" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <MopedIcon fontSize="small" /> Finding nearest rider...
                   </Typography>
                 )}
 
-                {/* 3. On the Way: Allow Receive */}
+                {/* 3. On the Way: Can Receive */}
                 {order.status === 'On the Way' && (
-                  <Button variant="contained" color="primary" size="small" startIcon={<CheckCircleIcon />} onClick={() => updateOrderStatus(order.id, 'Delivered')}>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    size="small" 
+                    startIcon={<CheckCircleIcon />} 
+                    onClick={() => updateOrderStatus(order.id, 'Delivered')}
+                  >
                     Order Received
                   </Button>
                 )}
 
-                {/* 4. Delivered: Allow Refund */}
+                {/* 4. Delivered: Can Request Refund */}
                 {order.status === 'Delivered' && (
-                  <Button variant="outlined" color="error" size="small" startIcon={<RestartAltIcon />} onClick={() => updateOrderStatus(order.id, 'Refunded')}>
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    size="small" 
+                    startIcon={<RestartAltIcon />} 
+                    // 🚨 IMPORTANT: Sets status to 'Refund Requested' for Admin review
+                    onClick={() => updateOrderStatus(order.id, 'Refund Requested')}
+                  >
                     Request Refund
                   </Button>
                 )}
 
+                {/* 5. Pending Review Info */}
+                {order.status === 'Refund Requested' && (
+                  <Typography variant="caption" color="secondary.main" sx={{ fontWeight: 'bold', fontStyle: 'italic' }}>
+                    Refund under review...
+                  </Typography>
+                )}
+
+                {/* 6. Closed States */}
                 {['Cancelled', 'Refunded'].includes(order.status) && (
                   <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
                     No further actions available
                   </Typography>
                 )}
+
               </Box>
             </Paper>
           ))

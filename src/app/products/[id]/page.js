@@ -1,34 +1,32 @@
 // src/app/products/[id]/page.js
 'use client';
 
-import React, { useState, useEffect, use } from 'react'; // 1. Import 'use'
+import React, { useState, useEffect, use } from 'react'; 
 import { Container, Typography, Box, Button, TextField, Paper, Grid } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useCart } from '../../context/CartContext';
-import { products } from '../../../data/products';
-import NextLink from 'next/link'; 
+import { useProducts } from '../../context/ProductContext'; // 1. Import Context
 
-const fetchProductById = (id) => {
-  return products.find(p => p.id === parseInt(id));
-};
-
-const ProductDetailPage = ({ params }) => { 
-  // 2. Unwrap the params Promise using React.use()
-  // This converts the Promise into a usable object
+export default function ProductDetailPage({ params }) { 
   const unwrappedParams = use(params);
   const productId = unwrappedParams.id;
 
   const { addToCart } = useCart();
+  const { allProducts } = useProducts(); // 2. Get Products
+
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchedProduct = fetchProductById(productId);
-    setProduct(fetchedProduct);
-    setLoading(false);
-  }, [productId]);
+    // 3. Find product from global state, NOT file
+    if (allProducts && allProducts.length > 0) {
+      const found = allProducts.find(p => p.id === parseInt(productId));
+      setProduct(found);
+      setLoading(false);
+    }
+  }, [productId, allProducts]);
 
   const handleQuantityChange = (event) => {
     const value = Math.max(1, Number(event.target.value));
@@ -37,9 +35,17 @@ const ProductDetailPage = ({ params }) => {
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart(product, quantity);
+      // NOTE: For full compatibility, this should probably use your new ProductModal logic,
+      // but for this specific page, we stick to the basic add.
+      // Ideally, you'd just redirect this page to use the Modal or replicate the options logic here.
+      // For now, we'll keep it simple to ensure the page doesn't crash.
+      const itemToAdd = {
+         ...product,
+         cartId: `${product.id}-default`, // Simple cart ID for direct page adds
+         quantity
+      };
+      addToCart(itemToAdd);
       setQuantity(1); 
-      console.log(`Added ${quantity} of ${product.name} to cart.`);
     }
   };
 
@@ -55,7 +61,7 @@ const ProductDetailPage = ({ params }) => {
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <img 
-          src={product.imageUrl.replace('300x200', '600x400')} 
+          src={product.imageUrl} 
           alt={product.name} 
           style={{ width: '100%', height: 'auto', maxHeight: 400, objectFit: 'cover' }} 
         />
@@ -66,7 +72,7 @@ const ProductDetailPage = ({ params }) => {
           </Typography>
           
           <Typography variant="h4" color="primary.main" sx={{ mb: 2 }}>
-            ${product.price.toFixed(2)}
+            ₱{product.price.toFixed(2)}
           </Typography>
           
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
@@ -122,5 +128,3 @@ const ProductDetailPage = ({ params }) => {
     </Container>
   );
 };
-
-export default ProductDetailPage;

@@ -11,33 +11,54 @@ export default function AuthGuard({ children }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // List of paths that do NOT require login
   const publicPaths = ['/']; 
 
   useEffect(() => {
-    // If logic:
-    // 1. We are done loading checks
-    // 2. There is NO user logged in
-    // 3. The current page is NOT a public page
-    if (!isLoading && !currentUser && !publicPaths.includes(pathname)) {
+    // Wait until loading is finished
+    if (isLoading) return;
+
+    // 1. NOT LOGGED IN? -> Kick to Login
+    if (!currentUser && !publicPaths.includes(pathname)) {
       router.push('/');
+      return;
     }
+
+    // 2. IS LOGGED IN? Check Permissions
+    if (currentUser) {
+        const isAdmin = currentUser.role === 'System Administrator';
+        const tryingToAccessAdmin = pathname.startsWith('/admin');
+
+        // SCENARIO A: Normal User tries to access Admin Page -> Kick to Home
+        if (!isAdmin && tryingToAccessAdmin) {
+            router.push('/home');
+        }
+
+        // SCENARIO B: Admin tries to access Customer Pages (Home, Cart, etc) -> Kick to Admin Dashboard
+        // (Remove this block if you want Admins to be able to see the shop too)
+        if (isAdmin && !tryingToAccessAdmin) {
+            router.push('/admin');
+        }
+    }
+
   }, [currentUser, isLoading, pathname, router]);
 
-  // 1. Show Loading Spinner while checking LocalStorage
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#fafafa' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
         <CircularProgress color="primary" />
       </Box>
     );
   }
 
-  // 2. If not logged in and trying to access a private page, render nothing (while redirect happens)
-  if (!currentUser && !publicPaths.includes(pathname)) {
-    return null;
+  // Prevent flash of unauthorized content
+  if (!currentUser && !publicPaths.includes(pathname)) return null;
+  
+  // Strict Mode: Hide content if roles mismatch while redirecting
+  if (currentUser) {
+      const isAdmin = currentUser.role === 'System Administrator';
+      if (!isAdmin && pathname.startsWith('/admin')) return null;
+      if (isAdmin && !pathname.startsWith('/admin')) return null;
   }
 
-  // 3. Otherwise, render the page content
   return <>{children}</>;
 }

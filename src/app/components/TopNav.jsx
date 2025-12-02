@@ -4,25 +4,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useColorMode } from '../context/ThemeContext';
 
 // MUI Components
 import { 
-  AppBar, 
-  Toolbar, 
-  IconButton, 
-  Badge, 
-  Typography, 
-  Drawer, 
-  Box, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  Divider, 
-  Avatar,
-  Tooltip 
+  AppBar, Toolbar, IconButton, Badge, Typography, Drawer, Box, List, ListItem, 
+  ListItemButton, ListItemIcon, ListItemText, Divider, Avatar, Tooltip 
 } from '@mui/material';
 
 // MUI Icons
@@ -35,17 +21,16 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import InfoIcon from '@mui/icons-material/Info';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
-
-// 1. UPDATED ICONS (Cleaner look)
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 
+// Context Imports
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useColorMode } from '../context/ThemeContext';
 
-// --- Internal Sidebar Component (Unchanged) ---
+// --- Internal Sidebar Component ---
 const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
-  // ... (Keep the SidebarMenu code exactly as it was) ...
   const navItems = [
     { name: "Explore", icon: <ExploreIcon />, href: "/explore" },
     { name: "Orders", icon: <ShoppingBagIcon />, href: "/orders" },
@@ -109,13 +94,11 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
 const TopNav = () => {
   const { cartCount } = useCart();
   const { currentUser, logout } = useAuth(); 
+  const { mode, toggleColorMode } = useColorMode();
   const pathname = usePathname();
   const router = useRouter();
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  
-  // 2. USE GLOBAL THEME STATE
-  const { mode, toggleColorMode } = useColorMode();
   const isDarkMode = mode === 'dark';
 
   const handleLogout = () => {
@@ -124,32 +107,16 @@ const TopNav = () => {
     router.push('/');     
   };
 
-  if (pathname === '/' || pathname === '/auth') {
+  // 🚨 HIDE IF ON LOGIN OR ADMIN PAGES
+  if (pathname === '/' || pathname === '/auth' || pathname.startsWith('/admin')) {
     return null;
   }
 
   return (
     <>
-      <AppBar 
-        position="sticky" 
-        elevation={0}
-        sx={{ 
-            // 3. Make AppBar color dynamic
-            bgcolor: 'background.paper', 
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            color: 'text.primary'
-        }}
-      >
+      <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', color: 'text.primary' }}>
         <Toolbar>
-          <IconButton 
-            size="large" 
-            edge="start" 
-            color="inherit" 
-            aria-label="menu" 
-            sx={{ mr: 1 }} 
-            onClick={() => setIsDrawerOpen(true)}
-          >
+          <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 1 }} onClick={() => setIsDrawerOpen(true)}>
             <MenuIcon />
           </IconButton>
 
@@ -159,19 +126,9 @@ const TopNav = () => {
             </Link>
           </Typography>
 
-          {/* 4. CONNECT TOGGLE FUNCTION */}
           <Tooltip title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-            <IconButton 
-                onClick={toggleColorMode} 
-                color="inherit"
-                sx={{ mr: 1 }}
-            >
-                {/* Visual Logic */}
-                {isDarkMode ? (
-                    <LightModeIcon sx={{ color: '#FFB300' }} /> // Sun
-                ) : (
-                    <DarkModeIcon sx={{ color: 'action.active' }} /> // Moon
-                )}
+            <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
+                {isDarkMode ? <LightModeIcon sx={{ color: '#FFB300' }} /> : <DarkModeIcon sx={{ color: 'action.active' }} />}
             </IconButton>
           </Tooltip>
 
@@ -182,16 +139,10 @@ const TopNav = () => {
               </Badge>
             </Link>
           </IconButton>
-
         </Toolbar>
       </AppBar>
 
-      <SidebarMenu 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-        user={currentUser} 
-        onLogout={handleLogout}
-      />
+      <SidebarMenu isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} user={currentUser} onLogout={handleLogout} />
     </>
   );
 };

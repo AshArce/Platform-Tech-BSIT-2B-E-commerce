@@ -1,22 +1,32 @@
 // src/app/explore/page.js
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { 
   Container, Grid, Typography, TextField, InputAdornment, 
-  Box, Chip, FormControl, Select, MenuItem, Stack, 
+  Box, Chip, FormControl, Select, MenuItem, Snackbar, Alert, Stack, 
   Pagination, useTheme, useMediaQuery 
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ProductCard from '../components/ProductCard';
-import ProductModal from '../components/ProductModal.js';  
-import { products } from '../../data/products';
+import ProductModal from '../components/ProductModal';
+import { useCart } from '../context/CartContext';
+import { useSearchParams } from 'next/navigation'; 
+
+// 1. IMPORT CONTEXT
+import { useProducts } from '../context/ProductContext';
 
 const categories = ['All', 'Pizza', 'Burger', 'Drinks', 'Noodles', 'Rice', 'Dessert'];
 
-export default function ExplorePage() {
+function ExploreContent() {
+  const { addToCart } = useCart();
+  // 2. GET PRODUCTS FROM CONTEXT
+  const { allProducts } = useProducts();
+  
   const theme = useTheme();
+  const searchParams = useSearchParams(); 
+
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); 
   const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg')); 
 
@@ -25,25 +35,22 @@ export default function ExplorePage() {
   else if (isTablet) itemsPerPage = 21; 
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  
+  const initialCategory = searchParams.get('category');
+  const validCategory = categories.includes(initialCategory) ? initialCategory : 'All';
+  
+  const [selectedCategory, setSelectedCategory] = useState(validCategory);
   const [sortBy, setSortBy] = useState('popular');
   const [page, setPage] = useState(1);
 
-  // 2. MODAL STATE
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [lastAddedItem, setLastAddedItem] = useState('');
 
-  // 3. Handler to Open Modal
-  const handleProductClick = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  // 4. Handler to Close Modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedProduct(null), 200); // Clear after anim
-  };
+  const handleProductClick = (product) => { setSelectedProduct(product); setIsModalOpen(true); };
+  const handleCloseModal = () => { setIsModalOpen(false); setTimeout(() => setSelectedProduct(null), 200); };
+  const handleAddToCart = (product) => { addToCart(product); setLastAddedItem(product.name); setOpenSnackbar(true); };
 
   useEffect(() => { setPage(1); }, [itemsPerPage]);
 
@@ -51,8 +58,12 @@ export default function ExplorePage() {
   const handleCategoryClick = (cat) => { setSelectedCategory(cat); setPage(1); };
   const handlePageChange = (event, value) => { setPage(value); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
+  // 3. UPDATE FILTER LOGIC TO USE allProducts
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    if (!allProducts) return [];
+
+    let result = [...allProducts]; // Use dynamic list
+
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(p => p.name.toLowerCase().includes(lowerQuery) || p.description.toLowerCase().includes(lowerQuery));
@@ -65,7 +76,7 @@ export default function ExplorePage() {
       default: break;
     }
     return result;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory, sortBy, allProducts]); // Add allProducts dependency
 
   const count = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice((page - 1) * itemsPerPage, page * itemsPerPage);
@@ -74,14 +85,13 @@ export default function ExplorePage() {
     <Container maxWidth="lg" sx={{ py: 4, pb: 10 }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Explore Menu</Typography>
 
-      {/* CONTROLS (Same as before) */}
-      <Box sx={{ mb: 4, position: 'relative', bgcolor: '#fafafa', zIndex: 10, py: 2 }}>
+      <Box sx={{ mb: 4, position: 'relative', bgcolor: 'background.default', zIndex: 10, py: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 8 }}>
-            <TextField fullWidth placeholder="Search..." variant="outlined" size="small" value={searchQuery} onChange={handleSearchChange} InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>) }} sx={{ bgcolor: 'white' }} />
+            <TextField fullWidth placeholder="Search..." variant="outlined" size="small" value={searchQuery} onChange={handleSearchChange} InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>) }} sx={{ bgcolor: 'background.paper' }} />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <FormControl fullWidth size="small" sx={{ bgcolor: 'white' }}>
+            <FormControl fullWidth size="small" sx={{ bgcolor: 'background.paper' }}>
               <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} displayEmpty startAdornment={<InputAdornment position="start"><FilterListIcon fontSize="small" /></InputAdornment>}>
                 <MenuItem value="popular">Sort By: Popularity</MenuItem>
                 <MenuItem value="lowToHigh">Price: Low to High</MenuItem>
@@ -98,7 +108,6 @@ export default function ExplorePage() {
         </Stack>
       </Box>
 
-      {/* RESULTS */}
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Showing {paginatedProducts.length} results</Typography>
 
       {paginatedProducts.length > 0 ? (
@@ -106,10 +115,7 @@ export default function ExplorePage() {
           <Grid container spacing={2}>
             {paginatedProducts.map((product) => (
               <Grid key={product.id} size={{ xs: 6, md: 4, lg: 3 }}>
-                <ProductCard 
-                  product={product} 
-                  onProductClick={handleProductClick} // 5. Pass handler
-                />
+                <ProductCard product={product} onProductClick={handleProductClick} />
               </Grid>
             ))}
           </Grid>
@@ -123,13 +129,19 @@ export default function ExplorePage() {
         <Box sx={{ textAlign: 'center', py: 8 }}><Typography variant="h6" color="text.secondary">No items found</Typography></Box>
       )}
 
-      {/* 6. RENDER THE MODAL */}
-      <ProductModal 
-        open={isModalOpen} 
-        onClose={handleCloseModal} 
-        product={selectedProduct} 
-      />
+      <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)}>
+        <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }} variant="filled">{lastAddedItem} added to cart!</Alert>
+      </Snackbar>
 
+      <ProductModal open={isModalOpen} onClose={handleCloseModal} product={selectedProduct} />
     </Container>
+  );
+}
+
+export default function ExplorePageWrapper() {
+  return (
+    <Suspense fallback={<Typography>Loading...</Typography>}>
+      <ExploreContent />
+    </Suspense>
   );
 }
