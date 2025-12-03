@@ -1,14 +1,14 @@
 // src/app/components/TopNav.jsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 // MUI Components
 import { 
   AppBar, Toolbar, IconButton, Badge, Typography, Drawer, Box, List, ListItem, 
-  ListItemButton, ListItemIcon, ListItemText, Divider, Avatar, Tooltip 
+  ListItemButton, ListItemIcon, ListItemText, Divider, Avatar, Tooltip, useMediaQuery, useTheme 
 } from '@mui/material';
 
 // MUI Icons
@@ -30,7 +30,8 @@ import { useAuth } from '../context/AuthContext';
 import { useColorMode } from '../context/ThemeContext';
 
 // --- Internal Sidebar Component ---
-const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
+// UPDATED: Added onDrawerMouseEnter and onDrawerMouseLeave props
+const SidebarMenu = ({ user, isOpen, onClose, onLogout, onDrawerMouseEnter, onDrawerMouseLeave }) => {
   const navItems = [
     { name: "Explore", icon: <ExploreIcon />, href: "/explore" },
     { name: "Orders", icon: <ShoppingBagIcon />, href: "/orders" },
@@ -43,7 +44,14 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
   ];
 
   return (
-    <Drawer anchor="left" open={isOpen} onClose={onClose}>
+    // MODIFIED: Added onMouseEnter and onMouseLeave to the Drawer component
+    <Drawer 
+      anchor="left" 
+      open={isOpen} 
+      onClose={onClose} 
+      onMouseEnter={onDrawerMouseEnter}
+      onMouseLeave={onDrawerMouseLeave}
+    >
       <Box sx={{ width: 280 }} role="presentation" onClick={onClose} onKeyDown={onClose}>
         <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'primary.main', color: 'primary.contrastText' }}>
           <Avatar sx={{ width: 64, height: 64, bgcolor: 'white', color: 'primary.main', mb: 1.5, fontWeight: 'bold' }}>
@@ -53,8 +61,8 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout }) => {
           <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>{user?.email || ''}</Typography>
           <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.2)', px: 2, py: 0.5, borderRadius: 2, cursor: 'pointer' }}>
-                <EditIcon fontSize="small" sx={{ mr: 1, fontSize: 16 }} />
-                <Typography variant="caption" fontWeight="bold">Edit Profile</Typography>
+               <EditIcon fontSize="small" sx={{ mr: 1, fontSize: 16 }} />
+               <Typography variant="caption" fontWeight="bold">Edit Profile</Typography>
              </Box>
           </Link>
         </Box>
@@ -99,12 +107,43 @@ const TopNav = () => {
   const router = useRouter();
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const closeTimeoutRef = useRef(null); 
   const isDarkMode = mode === 'dark';
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); 
+
   const handleLogout = () => {
-    logout();            
+    logout(); 
     setIsDrawerOpen(false); 
-    router.push('/');     
+    router.push('/'); 
+  };
+  
+  const handleMenuClick = () => {
+    if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+    }
+    setIsDrawerOpen(prev => !prev);
+  };
+
+  // Hover handlers for Desktop
+  const handleMouseEnter = () => {
+    if (!isMobile) {
+      // Clear the close timeout if the mouse enters the trigger area (icon/drawer)
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      setIsDrawerOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isMobile) {
+      // Start the close timeout when the mouse leaves the trigger area (icon/drawer)
+      closeTimeoutRef.current = setTimeout(() => {
+        setIsDrawerOpen(false);
+      }, 300);
+    }
   };
 
   // 🚨 HIDE IF ON LOGIN OR ADMIN PAGES
@@ -116,9 +155,30 @@ const TopNav = () => {
     <>
       <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', color: 'text.primary' }}>
         <Toolbar>
-          <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 1 }} onClick={() => setIsDrawerOpen(true)}>
-            <MenuIcon />
-          </IconButton>
+          
+          {/* Container Box: Handles mouse events for the Icon area */}
+          <Box
+            // Use the single mouse enter handler for both the icon and the drawer
+            onMouseEnter={handleMouseEnter} 
+            // Use the single mouse leave handler for both the icon and the drawer
+            onMouseLeave={handleMouseLeave} 
+            sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mr: 1 
+            }}
+          >
+            <IconButton 
+              size="large" 
+              edge="start" 
+              color="inherit" 
+              aria-label="menu" 
+              onClick={handleMenuClick} 
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
+
 
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: '800', letterSpacing: '-0.5px' }}>
             <Link href="/home" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -128,7 +188,7 @@ const TopNav = () => {
 
           <Tooltip title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
-                {isDarkMode ? <LightModeIcon sx={{ color: '#FFB300' }} /> : <DarkModeIcon sx={{ color: 'action.active' }} />}
+              {isDarkMode ? <LightModeIcon sx={{ color: '#FFB300' }} /> : <DarkModeIcon sx={{ color: 'action.active' }} />}
             </IconButton>
           </Tooltip>
 
@@ -142,7 +202,21 @@ const TopNav = () => {
         </Toolbar>
       </AppBar>
 
-      <SidebarMenu isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} user={currentUser} onLogout={handleLogout} />
+      {/* SidebarMenu: Now accepts the mouse handlers */}
+      <SidebarMenu 
+        isOpen={isDrawerOpen} 
+        onClose={() => {
+          if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+          }
+          setIsDrawerOpen(false);
+        }} 
+        user={currentUser} 
+        onLogout={handleLogout} 
+        // PASSED HANDLERS DOWN
+        onDrawerMouseEnter={handleMouseEnter}
+        onDrawerMouseLeave={handleMouseLeave}
+      />
     </>
   );
 };
