@@ -202,7 +202,7 @@ const LoginPage = () => {
       {view === 'LANDING' && (
         <Box sx={{ mb: 4, color: 'white' }}>
           <Typography variant="h2" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-            <img src="/vercel.svg" alt="Logo" style={{ maxWidth: '150px', filter: 'invert(100%) brightness(200%)' }} />
+            <img src="image/icon.png" alt="Logo" style={{ maxWidth: '250px',}} />
           </Typography>
           <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2, color: 'black' }}>E-BIKE EXPRESS</Typography>
           <Typography variant="h6" sx={{ mt: 1, color: 'black' }}>Find Your Flavor Faster</Typography>

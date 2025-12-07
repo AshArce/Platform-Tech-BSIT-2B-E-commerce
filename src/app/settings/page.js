@@ -3,73 +3,73 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Container, Typography, Box, Paper, TextField, Button, Avatar, 
-  Grid, Alert, Divider 
+  Box, Container, Typography, Paper, List, ListItem, ListItemText, 
+  ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, IconButton,
+  ListItemButton,
+  // Dialog components for popups
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { useAuth } from '../context/AuthContext';
 
+// IMPORT NEW SEPARATED COMPONENTS
+import TermsDialog from '../components/TermsDialog'; 
+import PrivacyDialog from '../components/PrivacyDialog';
+
 export default function SettingsPage() {
-  const { currentUser, updateProfile } = useAuth();
+  const router = useRouter();
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  // STATE VARIABLES
+  const [pushNotifications, setPushNotifications] = useState(true);
+  
+  // Location Dialog State
+  const [location, setLocation] = useState("Batangas City, Philippines"); 
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false); 
+  const [tempLocation, setTempLocation] = useState(""); 
+  
+  // Terms of Service Dialog State
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
-  const [status, setStatus] = useState({ type: '', message: '' });
+  // Data Policy Dialog State
+  const [isDataPolicyOpen, setIsDataPolicyOpen] = useState(false);
 
-  // Load current user data
-  useEffect(() => {
-    if (currentUser) {
-      setFormData(prev => ({
-        ...prev,
-        name: currentUser.name || '',
-        email: currentUser.email || '',
-        phone: currentUser.phone || '', // Ensure phone is handled
-      }));
-    }
-  }, [currentUser]);
+  // --- HANDLERS ---
+  const handleBack = () => router.back();
+  const handleNavClick = (route) => console.log(`Maps to ${route}`);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // Location Dialog Handlers
+  const handleOpenLocationDialog = () => {
+    setTempLocation(location); 
+    setIsLocationDialogOpen(true);     
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus({ type: '', message: '' });
-
-    // Validation: If changing password, ensure they match
-    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-        setStatus({ type: 'error', message: 'New passwords do not match' });
-        return;
-    }
-
-    const payload = {
-        id: currentUser.id,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        currentPassword: formData.currentPassword, // Required if changing password
-        newPassword: formData.newPassword
-    };
-
-    const result = await updateProfile(payload);
-
-    if (result.success) {
-        setStatus({ type: 'success', message: 'Profile updated successfully!' });
-        // Clear sensitive fields
-        setFormData(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
-    } else {
-        setStatus({ type: 'error', message: result.message });
-    }
+  const handleCloseLocationDialog = () => {
+    setIsLocationDialogOpen(false);    
   };
 
-  if (!currentUser) return null;
+  const handleSaveLocation = () => {
+    setLocation(tempLocation); 
+    setIsLocationDialogOpen(false);    
+  };
+  
+  // Terms of Service Dialog Handlers
+  const handleOpenTerms = () => {
+    setIsTermsOpen(true);
+  };
+
+  const handleCloseTerms = () => {
+    setIsTermsOpen(false);
+  };
+
+  // Data Policy Dialog Handlers
+  const handleOpenDataPolicy = () => {
+    setIsDataPolicyOpen(true);
+  };
+
+  const handleCloseDataPolicy = () => {
+    setIsDataPolicyOpen(false);
+  };
+
 
   return (
     <Container maxWidth="sm" sx={{ py: 4, pb: 10 }}>
@@ -89,49 +89,138 @@ export default function SettingsPage() {
             <Typography variant="body2" color="text.secondary">{currentUser.role}</Typography>
         </Box>
 
-        {status.message && (
-            <Alert severity={status.type} sx={{ mb: 3 }}>{status.message}</Alert>
-        )}
+        {/* SECTION 1: General Settings */}
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, ml: 1, textTransform: 'uppercase', fontWeight: 'bold' }}>
+          General
+        </Typography>
+        
+        <Paper elevation={0} sx={{ borderRadius: 3, mb: 4, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
+          <List disablePadding>
+            
+            {/* Location Settings */}
+            <ListItem sx={{ py: 2 }}>
+              <ListItemIcon>
+                <LocationOnIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Location Settings" 
+                secondary={location}
+                primaryTypographyProps={{ fontWeight: 'medium' }}
+              />
+              <Button 
+                variant="outlined" 
+                size="small" 
+                onClick={handleOpenLocationDialog} // Use open handler
+                sx={{ borderRadius: 2 }}
+              >
+                Change
+              </Button>
+            </ListItem>
 
-        <form onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
-                <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Personal Information</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                    <TextField fullWidth label="Full Name" name="name" value={formData.name} onChange={handleChange} />
-                </Grid>
-                <Grid item xs={12}>
-                    <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} />
-                </Grid>
-                 <Grid item xs={12}>
-                    <TextField fullWidth label="Phone" name="phone" value={formData.phone} onChange={handleChange} />
-                </Grid>
+            <Divider variant="middle" />
 
-                <Grid item xs={12}>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Security (Optional)</Typography>
-                </Grid>
-                
-                <Grid item xs={12}>
-                    <TextField fullWidth type="password" label="Current Password" name="currentPassword" value={formData.currentPassword} onChange={handleChange} helperText="Required only if changing password" />
-                </Grid>
-                <Grid item xs={6}>
-                    <TextField fullWidth type="password" label="New Password" name="newPassword" value={formData.newPassword} onChange={handleChange} />
-                </Grid>
-                <Grid item xs={6}>
-                    <TextField fullWidth type="password" label="Confirm New Password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
-                </Grid>
+            {/* Push Notifications */}
+            <ListItem sx={{ py: 2 }}>
+              <ListItemIcon>
+                <NotificationsIcon color="action" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Push Notifications" 
+                secondary="Receive delivery updates on your device"
+                primaryTypographyProps={{ fontWeight: 'medium' }}
+              />
+              <ListItemSecondaryAction>
+                <Switch 
+                  edge="end" 
+                  checked={pushNotifications} 
+                  onChange={(e) => setPushNotifications(e.target.checked)} 
+                />
+              </ListItemSecondaryAction>
+            </ListItem>
 
-                <Grid item xs={12} mt={2}>
-                    <Button type="submit" variant="contained" size="large" fullWidth startIcon={<SaveIcon />}>
-                        Save Changes
-                    </Button>
-                </Grid>
-            </Grid>
-        </form>
+          </List>
+        </Paper>
 
-      </Paper>
-    </Container>
+        {/* SECTION 2: Support */}
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, ml: 1, textTransform: 'uppercase', fontWeight: 'bold' }}>
+          Support & Legal
+        </Typography>
+
+        <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
+          <List disablePadding>
+            
+            {/* Terms of Service (Triggers Full Screen Modal) */}
+            <ListItem disablePadding>
+              <ListItemButton onClick={handleOpenTerms} sx={{ py: 2 }}>
+                <ListItemIcon><DescriptionIcon color="action" /></ListItemIcon>
+                <ListItemText primary="Terms of Service" />
+                <ChevronRightIcon color="action" />
+              </ListItemButton>
+            </ListItem>
+            <Divider variant="inset" component="li" />
+
+            {/* Data Policy (Triggers Full Screen Modal) */}
+            <ListItem disablePadding>
+              <ListItemButton onClick={handleOpenDataPolicy} sx={{ py: 2 }}>
+                <ListItemIcon><PrivacyTipIcon color="action" /></ListItemIcon>
+                <ListItemText primary="Data Policy" />
+                <ChevronRightIcon color="action" />
+              </ListItemButton>
+            </ListItem>
+            <Divider variant="inset" component="li" />
+
+            {/* Help / FAQ */}
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => handleNavClick('/help')} sx={{ py: 2 }}>
+                <ListItemIcon><HelpIcon color="action" /></ListItemIcon>
+                <ListItemText primary="Help / FAQ" />
+                <ChevronRightIcon color="action" />
+              </ListItemButton>
+            </ListItem>
+            <Divider variant="inset" component="li" />
+
+            {/* Contact Us */}
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => handleNavClick('/contact')} sx={{ py: 2 }}>
+                <ListItemIcon><EmailIcon color="action" /></ListItemIcon>
+                <ListItemText primary="Contact Us" />
+                <ChevronRightIcon color="action" />
+              </ListItemButton>
+            </ListItem>
+
+          </List>
+        </Paper>
+
+        {/* --- DIALOG 1: EDIT LOCATION POPUP (SMALL DIALOG) --- */}
+        <Dialog open={isLocationDialogOpen} onClose={handleCloseLocationDialog} fullWidth maxWidth="xs">
+          <DialogTitle>Update Location</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Enter new location"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={tempLocation}
+              onChange={(e) => setTempLocation(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseLocationDialog} color="inherit">Cancel</Button>
+            <Button onClick={handleSaveLocation} variant="contained" color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* --- DIALOG 2: TERMS OF SERVICE (SEPARATED COMPONENT) --- */}
+        <TermsDialog open={isTermsOpen} onClose={handleCloseTerms} />
+
+        {/* --- DIALOG 3: DATA POLICY (SEPARATED COMPONENT) --- */}
+        <PrivacyDialog open={isDataPolicyOpen} onClose={handleCloseDataPolicy} />
+        
+      </Container>
+    </Box>
   );
 }

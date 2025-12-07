@@ -1,3 +1,4 @@
+// about/page.js
 'use client';
 import React, { useState } from 'react';
 import { 
@@ -20,8 +21,8 @@ import {
   TextField,         
   IconButton,
   MenuItem,
-  Snackbar, // Added for success message
-  Alert     // Added for styling the success message
+  Snackbar, 
+  Alert     
 } from '@mui/material';
 import { 
   ElectricBike, 
@@ -34,31 +35,26 @@ import {
 
 export default function AboutPage() {
   const theme = useTheme();
+  // Check if we are in dark mode to apply special effects
+  const isDark = theme.palette.mode === 'dark';
 
   // ==========================================
   // STATE MANAGEMENT
   // ==========================================
   
-  // 1. RIDER FORM STATE
   const [openRiderForm, setOpenRiderForm] = useState(false);
   const handleOpenRider = () => setOpenRiderForm(true);
   const handleCloseRider = () => setOpenRiderForm(false);
 
-  // 2. PARTNER FORM STATE
   const [openPartnerForm, setOpenPartnerForm] = useState(false);
   const handleOpenPartner = () => setOpenPartnerForm(true);
   const handleClosePartner = () => setOpenPartnerForm(false);
 
-  // 3. SUCCESS MESSAGE STATE (SNACKBAR)
   const [openSuccess, setOpenSuccess] = useState(false);
 
-  // Function to handle "Submit" actions
   const handleSubmit = (type) => {
-    // 1. Close the specific form
     if (type === 'rider') setOpenRiderForm(false);
     if (type === 'partner') setOpenPartnerForm(false);
-    
-    // 2. Open the success message
     setOpenSuccess(true);
   };
 
@@ -67,41 +63,27 @@ export default function AboutPage() {
     setOpenSuccess(false);
   };
 
-  // DATA ARRAY
   const teamMembers = [
-    { 
-      name: 'John Ashley Arcebuche', 
-      role: 'Founder / Developer', 
-      img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&q=80' 
-    },
-    { 
-      name: 'Riddik De Leon', 
-      role: 'Member / Fishball Vendor', 
-      img: '../image/Teams/riddik.jpg' 
-    },
-    { 
-      name: 'Marco Jay V Reyes', 
-      role: 'Member / Designer', 
-      img: '../image/Teams/marco.jpg' 
-    },
-    { 
-      name: 'Casely Aguilar', 
-      role: 'Member / Designer', 
-      img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' 
-    },
+    { name: 'John Ashley Arcebuche', role: 'Founder / Developer', img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&q=80' },
+    { name: 'Riddik De Leon', role: 'Member / Fishball Vendor', img: '../image/Teams/riddik.jpg' },
+    { name: 'Marco Jay V Reyes', role: 'Member / Designer', img: '../image/Teams/marco.jpg' },
+    { name: 'Casely Aguilar', role: 'Member / Designer', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' },
   ];
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
+    // CHANGED: Removed hardcoded bg, used background.default
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10, transition: 'background-color 0.3s' }}>
       
       {/* 1. HERO SECTION */}
       <Box 
         sx={{ 
-          bgcolor: 'white', 
+          // FIXED: Changed 'white' to background.paper
+          bgcolor: 'background.paper', 
           pt: { xs: 8, md: 12 }, 
           pb: { xs: 12, md: 14 },
           textAlign: 'center',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          transition: 'background-color 0.3s'
         }}
       >
         <Container maxWidth="md">
@@ -112,7 +94,13 @@ export default function AboutPage() {
               fontWeight: 800, 
               color: 'text.primary',
               mb: 3,
-              fontSize: { xs: '2.5rem', md: '3.5rem' } 
+              fontSize: { xs: '2.5rem', md: '3.5rem' },
+              // COOL FEATURE: Gradient Text in Dark Mode
+              ...(isDark && {
+                background: 'linear-gradient(45deg, #90caf9 30%, #64b5f6 90%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              })
             }}
           >
             Delivering Delicious and Fast.
@@ -150,8 +138,8 @@ export default function AboutPage() {
         <Grid container spacing={2} justifyContent="center">
           {[
             { label: 'Eco-Friendly Fleet', icon: <ElectricBike fontSize="large"/>, text: '100% Electric bikes for a greener future.' },
-            { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
             { label: 'Happy Customers', icon: <EmojiEmotions fontSize="large"/>, text: 'Delivering smiles with every order.' },
+            { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
           ].map((item, index) => (
             <Grid item xs={12} md={4} key={index}>
               <Card 
@@ -163,16 +151,16 @@ export default function AboutPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  borderRadius: 4,
-                  boxShadow: '0px 10px 30px rgba(0,0,0,0.08)',
-                  transition: 'transform 0.3s ease-in-out',
+                  // FIXED: Card inherits theme style, but added explicit background for safety
+                  bgcolor: 'background.paper',
                   '&:hover': { transform: 'translateY(-8px)' }
                 }}
               >
                 <Box 
                   sx={{ 
                     color: 'primary.main', 
-                    bgcolor: '#fdf1e3ff', 
+                    // FIXED: Dynamic color for icon background
+                    bgcolor: isDark ? 'rgba(144, 202, 249, 0.1)' : '#fdf1e3ff', 
                     width: 70,
                     height: 70,
                     borderRadius: '50%',
@@ -184,7 +172,7 @@ export default function AboutPage() {
                 >
                   {item.icon}
                 </Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
                   {item.label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -199,13 +187,26 @@ export default function AboutPage() {
       {/* ========================================================= */}
       {/* 3 & 4. JOIN THE MOVEMENT SECTION                          */}
       {/* ========================================================= */}
-      <Box sx={{ bgcolor: 'grey.50', py: { xs: 6, md: 10 }, mb: 12 }}>
+      <Box sx={{ 
+          // FIXED: Changed grey.50 to background.default to match dark mode
+          bgcolor: 'background.default', 
+          py: { xs: 6, md: 10 }, 
+          mb: 12 
+      }}>
         <Container maxWidth="lg">
             <Box sx={{ textAlign: 'center', mb: 8 }}>
                 <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 'bold', letterSpacing: 1.5 }}>
                     BE PART OF THE CHANGE
                 </Typography>
-                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, fontSize: { xs: '2rem', md: '3rem'} }}>
+                <Typography 
+                    variant="h3" 
+                    fontWeight={800} 
+                    sx={{ 
+                        mt: 1, 
+                        fontSize: { xs: '2rem', md: '3rem'},
+                        color: 'text.primary' // Ensure text is mapped to theme
+                    }}
+                >
                     Join the Movement
                 </Typography>
             </Box>
@@ -221,7 +222,8 @@ export default function AboutPage() {
                             borderRadius: 6, 
                             height: '100%', 
                             border: '1px solid',
-                            borderColor: 'grey.200',
+                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'grey.200',
+                            bgcolor: 'background.paper', // Ensure paper color matches theme
                             display: 'flex', 
                             flexDirection: 'column',
                             transition: 'all 0.3s',
@@ -229,13 +231,13 @@ export default function AboutPage() {
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                            <Box sx={{ p: 1.5, bgcolor: 'grey.900', color: 'white', borderRadius: 3, mr: 2 }}>
+                            <Box sx={{ p: 1.5, bgcolor: isDark ? 'grey.800' : 'grey.900', color: 'white', borderRadius: 3, mr: 2 }}>
                                 <ElectricBike />
                             </Box>
-                            <Typography variant="h5" fontWeight={800}>For Riders</Typography>
+                            <Typography variant="h5" fontWeight={800} color="text.primary">For Riders</Typography>
                         </Box>
                         
-                        <Typography variant="h4" fontWeight={900} gutterBottom>
+                        <Typography variant="h4" fontWeight={900} gutterBottom color="text.primary">
                             Ride with pride.
                         </Typography>
                         
@@ -248,7 +250,7 @@ export default function AboutPage() {
                             {['Flexible Schedule', 'Weekly Earnings', 'Eco-friendly Bike Provided'].map((feat) => (
                                 <Box key={feat} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                     <CheckCircleOutline sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
-                                    <Typography variant="body2" fontWeight={500}>{feat}</Typography>
+                                    <Typography variant="body2" fontWeight={500} color="text.primary">{feat}</Typography>
                                 </Box>
                             ))}
                         </Box>
@@ -259,11 +261,11 @@ export default function AboutPage() {
                             size="large" 
                             endIcon={<ArrowForward />}
                             sx={{ 
-                                bgcolor: 'grey.900', 
+                                bgcolor: isDark ? 'grey.700' : 'grey.900', 
                                 color: 'white', 
                                 py: 1.5,
                                 borderRadius: 3,
-                                '&:hover': { bgcolor: 'grey.800' },
+                                '&:hover': { bgcolor: isDark ? 'grey.600' : 'grey.800' },
                                 mt: 'auto'
                             }}
                         >
@@ -281,7 +283,8 @@ export default function AboutPage() {
                             borderRadius: 6, 
                             height: '100%', 
                             border: '1px solid',
-                            borderColor: 'grey.200',
+                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'grey.200',
+                            bgcolor: 'background.paper',
                             display: 'flex', 
                             flexDirection: 'column',
                             transition: 'all 0.3s',
@@ -292,10 +295,10 @@ export default function AboutPage() {
                             <Box sx={{ p: 1.5, bgcolor: 'primary.main', color: 'white', borderRadius: 3, mr: 2 }}>
                                 <Storefront />
                             </Box>
-                            <Typography variant="h5" fontWeight={800}>For Businesses</Typography>
+                            <Typography variant="h5" fontWeight={800} color="text.primary">For Businesses</Typography>
                         </Box>
 
-                        <Typography variant="h4" fontWeight={900} gutterBottom>
+                        <Typography variant="h4" fontWeight={900} gutterBottom color="text.primary">
                             Partner with us.
                         </Typography>
 
@@ -308,7 +311,7 @@ export default function AboutPage() {
                             {['Reach New Customers', 'Zero Commission for 1st Month', 'Real-time Tracking'].map((feat) => (
                                 <Box key={feat} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                     <CheckCircleOutline sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
-                                    <Typography variant="body2" fontWeight={500}>{feat}</Typography>
+                                    <Typography variant="body2" fontWeight={500} color="text.primary">{feat}</Typography>
                                 </Box>
                             ))}
                         </Box>
@@ -361,12 +364,14 @@ export default function AboutPage() {
                     objectFit: 'cover', 
                     mb: 2, 
                     boxShadow: 3,
-                    border: '4px solid white' 
+                    border: '4px solid',
+                    borderColor: 'background.paper' // Border matches background
                   }}
                 />
                 <Typography 
                     variant="h6" 
                     fontWeight="bold"
+                    color="text.primary"
                     sx={{ 
                         fontSize: { xs: '1rem', md: '1.25rem' }, 
                         lineHeight: 1.2,
@@ -390,7 +395,11 @@ export default function AboutPage() {
       </Container>
 
       {/* 5. JOIN US CARDS (Big CTA) */}
-      <Box sx={{ bgcolor: 'white', py: 10 }}>
+      <Box sx={{ 
+          // FIXED: Changed 'white' to background.paper
+          bgcolor: 'background.paper', 
+          py: 10 
+      }}>
         <Container maxWidth="lg">
           <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 800, mb: 6, color: 'text.primary' }}>
             Ready to get started?
@@ -475,7 +484,6 @@ export default function AboutPage() {
           <Button onClick={handleCloseRider} color="inherit" size="large" sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          {/* UPDATED SUBMIT BUTTON */}
           <Button onClick={() => handleSubmit('rider')} variant="contained" color="primary" size="large" sx={{ borderRadius: 2, px: 4 }}>
             Submit Application
           </Button>
@@ -540,7 +548,6 @@ export default function AboutPage() {
           <Button onClick={handleClosePartner} color="inherit" size="large" sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          {/* UPDATED SUBMIT BUTTON */}
           <Button onClick={() => handleSubmit('partner')} variant="contained" color="primary" size="large" sx={{ borderRadius: 2, px: 4 }}>
             Submit Partner Request
           </Button>
@@ -568,6 +575,7 @@ export default function AboutPage() {
 // Helper Component for the Bottom Cards
 function CTA_Card({ title, image, buttonText, color, link }) {
   return (
+    // FIXED: Card color inheritance
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardMedia
         component="img"
@@ -576,7 +584,7 @@ function CTA_Card({ title, image, buttonText, color, link }) {
         alt={title}
       />
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h5" component="div" fontWeight="bold" gutterBottom>
+        <Typography variant="h5" component="div" fontWeight="bold" gutterBottom color="text.primary">
           {title}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
