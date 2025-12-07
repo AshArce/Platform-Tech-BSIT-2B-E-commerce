@@ -1,145 +1,137 @@
 // src/app/settings/page.js
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Box, Container, Typography, Paper, List, ListItem, ListItemText, 
-  ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, IconButton,
-  ListItemButton // 1. Added this import
+  Container, Typography, Box, Paper, TextField, Button, Avatar, 
+  Grid, Alert, Divider 
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import DescriptionIcon from '@mui/icons-material/Description';
-import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
-import HelpIcon from '@mui/icons-material/Help';
-import EmailIcon from '@mui/icons-material/Email';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useRouter } from 'next/navigation';
+import SaveIcon from '@mui/icons-material/Save';
+import { useAuth } from '../context/AuthContext';
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const [pushNotifications, setPushNotifications] = useState(true);
+  const { currentUser, updateProfile } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
-  // Handlers
-  const handleBack = () => router.back();
-  const handleEditLocation = () => console.log('Edit location clicked');
-  const handleNavClick = (route) => console.log(`Maps to ${route}`);
+  const [status, setStatus] = useState({ type: '', message: '' });
+
+  // Load current user data
+  useEffect(() => {
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '', // Ensure phone is handled
+      }));
+    }
+  }, [currentUser]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: '', message: '' });
+
+    // Validation: If changing password, ensure they match
+    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
+        setStatus({ type: 'error', message: 'New passwords do not match' });
+        return;
+    }
+
+    const payload = {
+        id: currentUser.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        currentPassword: formData.currentPassword, // Required if changing password
+        newPassword: formData.newPassword
+    };
+
+    const result = await updateProfile(payload);
+
+    if (result.success) {
+        setStatus({ type: 'success', message: 'Profile updated successfully!' });
+        // Clear sensitive fields
+        setFormData(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
+    } else {
+        setStatus({ type: 'error', message: result.message });
+    }
+  };
+
+  if (!currentUser) return null;
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
-      <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="sm" sx={{ py: 4, pb: 10 }}>
+      <Typography variant="h4" fontWeight="bold" mb={3}>Account Settings</Typography>
+
+      <Paper sx={{ p: 4, borderRadius: 2 }}>
         
-        {/* HEADER */}
-        <Box display="flex" alignItems="center" mb={4}>
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" fontWeight="bold">
-            Settings
-          </Typography>
+        {/* Avatar Section */}
+        <Box display="flex" flexDirection="column" alignItems="center" mb={4}>
+            <Avatar 
+                src={currentUser.avatarUrl} 
+                sx={{ width: 80, height: 80, mb: 2, bgcolor: 'primary.main', fontSize: 32 }}
+            >
+                {currentUser.name ? currentUser.name[0] : 'U'}
+            </Avatar>
+            <Typography variant="h6">{currentUser.name}</Typography>
+            <Typography variant="body2" color="text.secondary">{currentUser.role}</Typography>
         </Box>
 
-        {/* SECTION 1: General Settings */}
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, ml: 1, textTransform: 'uppercase', fontWeight: 'bold' }}>
-          General
-        </Typography>
-        
-        <Paper elevation={0} sx={{ borderRadius: 3, mb: 4, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
-          <List disablePadding>
-            
-            {/* Location Settings */}
-            <ListItem sx={{ py: 2 }}>
-              <ListItemIcon>
-                <LocationOnIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Location Settings" 
-                secondary="Batangas City, Philippines" 
-                primaryTypographyProps={{ fontWeight: 'medium' }}
-              />
-              <Button variant="outlined" size="small" onClick={handleEditLocation} sx={{ borderRadius: 2 }}>
-                Change
-              </Button>
-            </ListItem>
+        {status.message && (
+            <Alert severity={status.type} sx={{ mb: 3 }}>{status.message}</Alert>
+        )}
 
-            <Divider variant="middle" />
+        <form onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+                <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Personal Information</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                    <TextField fullWidth label="Full Name" name="name" value={formData.name} onChange={handleChange} />
+                </Grid>
+                <Grid item xs={12}>
+                    <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} />
+                </Grid>
+                 <Grid item xs={12}>
+                    <TextField fullWidth label="Phone" name="phone" value={formData.phone} onChange={handleChange} />
+                </Grid>
 
-            {/* Push Notifications */}
-            <ListItem sx={{ py: 2 }}>
-              <ListItemIcon>
-                <NotificationsIcon color="action" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Push Notifications" 
-                secondary="Receive delivery updates on your device"
-                primaryTypographyProps={{ fontWeight: 'medium' }}
-              />
-              <ListItemSecondaryAction>
-                <Switch 
-                  edge="end" 
-                  checked={pushNotifications} 
-                  onChange={(e) => setPushNotifications(e.target.checked)} 
-                />
-              </ListItemSecondaryAction>
-            </ListItem>
+                <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Security (Optional)</Typography>
+                </Grid>
+                
+                <Grid item xs={12}>
+                    <TextField fullWidth type="password" label="Current Password" name="currentPassword" value={formData.currentPassword} onChange={handleChange} helperText="Required only if changing password" />
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField fullWidth type="password" label="New Password" name="newPassword" value={formData.newPassword} onChange={handleChange} />
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField fullWidth type="password" label="Confirm New Password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
+                </Grid>
 
-          </List>
-        </Paper>
+                <Grid item xs={12} mt={2}>
+                    <Button type="submit" variant="contained" size="large" fullWidth startIcon={<SaveIcon />}>
+                        Save Changes
+                    </Button>
+                </Grid>
+            </Grid>
+        </form>
 
-        {/* SECTION 2: Support */}
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, ml: 1, textTransform: 'uppercase', fontWeight: 'bold' }}>
-          Support & Legal
-        </Typography>
-
-        <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
-          <List disablePadding>
-            
-            {/* 2. REPLACED <ListItem button> with <ListItemButton> */}
-            
-            {/* Terms of Service */}
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/terms')} sx={{ py: 2 }}>
-                <ListItemIcon><DescriptionIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Terms of Service" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-            <Divider variant="inset" component="li" />
-
-            {/* Data Policy */}
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/privacy')} sx={{ py: 2 }}>
-                <ListItemIcon><PrivacyTipIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Data Policy" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-            <Divider variant="inset" component="li" />
-
-            {/* Help / FAQ */}
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/help')} sx={{ py: 2 }}>
-                <ListItemIcon><HelpIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Help / FAQ" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-            <Divider variant="inset" component="li" />
-
-            {/* Contact Us */}
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/contact')} sx={{ py: 2 }}>
-                <ListItemIcon><EmailIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Contact Us" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-
-          </List>
-        </Paper>
-
-      </Container>
-    </Box>
+      </Paper>
+    </Container>
   );
 }

@@ -3,16 +3,20 @@
 
 import React, { useState } from 'react';
 import { 
-  Container, Typography, Box, Tabs, Tab, Button, Grid, Paper, 
+  Container, Typography, Box, Tabs, Tab, Button, Paper, 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton, Chip, TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-  FormControl, InputLabel, Select, MenuItem
+  FormControl, InputLabel, Select, MenuItem, InputAdornment
 } from '@mui/material';
+
+// Icons
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import TimerIcon from '@mui/icons-material/Timer';
+import LogoutIcon from '@mui/icons-material/Logout'; // New Icon
 
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
@@ -20,21 +24,36 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth(); // Get logout function
   const router = useRouter();
   const [tabValue, setTabValue] = useState(0);
 
   // Protect Route (Admin Only)
   if (!currentUser || currentUser.role !== 'System Administrator') {
-    // In a real app, show a "Access Denied" page
-    // For now, redirect home
     if (typeof window !== 'undefined') router.push('/');
     return null; 
   }
 
+  const handleLogout = () => {
+    logout();
+    router.push('/'); // Redirect to login page
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4, pb: 10 }}>
-      <Typography variant="h3" fontWeight="bold" mb={4}>Admin Dashboard</Typography>
+      
+      {/* HEADER WITH LOGOUT */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h3" fontWeight="bold">Admin Dashboard</Typography>
+        <Button 
+            variant="outlined" 
+            color="error" 
+            startIcon={<LogoutIcon />} 
+            onClick={handleLogout}
+        >
+            Log Out
+        </Button>
+      </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
@@ -55,19 +74,22 @@ function ProductManagement() {
   const { allProducts, deleteProduct, addProduct, updateProduct } = useProducts();
   const [openModal, setOpenModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  
+  // State for form fields (Default cookingTime: 5s)
   const [currentProduct, setCurrentProduct] = useState({
-    name: '', price: '', category: 'Pizza', description: '', imageUrl: ''
+    name: '', price: '', category: 'Pizza', description: '', imageUrl: '', cookingTime: 5
   });
 
   const handleOpenAdd = () => {
     setEditMode(false);
-    setCurrentProduct({ name: '', price: '', category: 'Pizza', description: '', imageUrl: '' });
+    setCurrentProduct({ name: '', price: '', category: 'Pizza', description: '', imageUrl: '', cookingTime: 5 });
     setOpenModal(true);
   };
 
   const handleOpenEdit = (product) => {
     setEditMode(true);
-    setCurrentProduct(product);
+    // Use existing cookingTime or default to 5
+    setCurrentProduct({ ...product, cookingTime: product.cookingTime || 5 });
     setOpenModal(true);
   };
 
@@ -75,10 +97,10 @@ function ProductManagement() {
     const productData = {
       ...currentProduct,
       price: parseFloat(currentProduct.price),
-      // Default placeholder if empty
+      cookingTime: parseInt(currentProduct.cookingTime) || 5, // Save as Number
       imageUrl: currentProduct.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image',
       inStock: true,
-      size: ['Small', 'Medium', 'Large'] // Default sizes
+      size: ['Small', 'Medium', 'Large']
     };
 
     if (editMode) {
@@ -106,6 +128,7 @@ function ProductManagement() {
               <TableCell>Name</TableCell>
               <TableCell>Category</TableCell>
               <TableCell>Price</TableCell>
+              <TableCell>Time</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -116,6 +139,12 @@ function ProductManagement() {
                 <TableCell fontWeight="bold">{product.name}</TableCell>
                 <TableCell><Chip label={product.category} size="small" /></TableCell>
                 <TableCell>₱{product.price.toFixed(2)}</TableCell>
+                <TableCell>
+                    <Box display="flex" alignItems="center" gap={0.5} color="text.secondary">
+                        <TimerIcon fontSize="small" />
+                        {product.cookingTime || 5}s
+                    </Box>
+                </TableCell>
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => handleOpenEdit(product)}><EditIcon /></IconButton>
                   <IconButton color="error" onClick={() => deleteProduct(product.id)}><DeleteIcon /></IconButton>
@@ -131,8 +160,33 @@ function ProductManagement() {
         <DialogTitle>{editMode ? 'Edit Product' : 'Add New Product'}</DialogTitle>
         <DialogContent>
           <Box display="flex" flexDirection="column" gap={2} mt={1}>
-            <TextField label="Product Name" fullWidth value={currentProduct.name} onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})} />
-            <TextField label="Price" type="number" fullWidth value={currentProduct.price} onChange={(e) => setCurrentProduct({...currentProduct, price: e.target.value})} />
+            <TextField 
+                label="Product Name" 
+                fullWidth 
+                value={currentProduct.name} 
+                onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})} 
+            />
+            
+            <Box display="flex" gap={2}>
+                <TextField 
+                    label="Price" 
+                    type="number" 
+                    fullWidth 
+                    value={currentProduct.price} 
+                    onChange={(e) => setCurrentProduct({...currentProduct, price: e.target.value})} 
+                />
+                <TextField 
+                    label="Cooking Time (Secs)" 
+                    type="number" 
+                    fullWidth 
+                    value={currentProduct.cookingTime} 
+                    onChange={(e) => setCurrentProduct({...currentProduct, cookingTime: e.target.value})} 
+                    InputProps={{
+                        endAdornment: <InputAdornment position="end">sec</InputAdornment>,
+                    }}
+                />
+            </Box>
+
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select value={currentProduct.category} label="Category" onChange={(e) => setCurrentProduct({...currentProduct, category: e.target.value})}>
@@ -186,7 +240,7 @@ function RefundManagement() {
                 size="small" 
                 startIcon={<CancelIcon />} 
                 sx={{ mr: 1 }}
-                onClick={() => updateOrderStatus(order.id, 'Delivered')} // Reject logic: Set back to Delivered
+                onClick={() => updateOrderStatus(order.id, 'Delivered')} // Reject logic
               >
                 Reject
               </Button>

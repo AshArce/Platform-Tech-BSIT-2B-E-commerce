@@ -8,7 +8,6 @@ import {
   Paper, Link as MuiLink, Divider, IconButton, Alert, Collapse 
 } from '@mui/material';
 
-// Icons
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import EmailIcon from '@mui/icons-material/Email'; 
@@ -23,7 +22,6 @@ import { useAuth } from './context/AuthContext';
 
 const LoginPage = () => {
   const router = useRouter(); 
-  // 1. Extract auth functions
   const { login, register } = useAuth(); 
 
   const [view, setView] = useState('LANDING'); 
@@ -32,7 +30,7 @@ const LoginPage = () => {
 
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '', // Acts as identifier (email/phone/username)
+    email: '', 
     phone: '',
     password: '',
   });
@@ -45,33 +43,75 @@ const LoginPage = () => {
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  const handleSubmit = (e) => {
+  // --- 🔒 VALIDATION LOGIC ---
+  const validateRegisterForm = () => {
+    const { fullName, email, phone, password } = formData;
+
+    // 1. Full Name Validation
+    // > 5 chars, no special chars (letters only), no leading space, no consecutive spaces
+    if (fullName.length <= 5) {
+        return "Full Name must be more than 5 characters.";
+    }
+    // Regex breakdown:
+    // ^[a-zA-Z0-9]+  -> Starts with a letter/number (no spaces/special chars)
+    // ( [a-zA-Z0-9]+)*$ -> Allows 1 space followed by more text (repeating), but no consecutive spaces
+    const nameRegex = /^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$/;
+    if (!nameRegex.test(fullName)) {
+        return "Name cannot start with a space, contain special characters, or have double spaces.";
+    }
+
+    // 2. Email Validation (@ and .com)
+    if (!email.includes('@') || !email.endsWith('.com')) {
+        return "Email must contain '@' and end with '.com'.";
+    }
+
+    // 3. Phone Number (Numbers only, 9-11 digits)
+    const phoneRegex = /^[0-9]{9,11}$/;
+    if (!phoneRegex.test(phone)) {
+        return "Phone number must be digits only and between 9-11 numbers.";
+    }
+
+    // 4. Password Validation (Strong + Min 8)
+    // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
+    // NOTE: If this is too strict for testing, you can use: /.{8,}/ (Just min 8 chars)
+    if (!strongPasswordRegex.test(password)) {
+        return "Password must be at least 8 characters and include 1 Uppercase, 1 Lowercase, 1 Number, and 1 Special Character.";
+    }
+
+    return null; // No errors
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (view === 'LOGIN') {
-      // 2. Call Login - It returns { success, role }
-      const result = login(formData.email, formData.password); 
+      // Login Logic (Async)
+      const result = await login(formData.email, formData.password); 
 
       if (result.success) {
         console.log('Login Success! Role:', result.role);
-        
-        // 3. ROLE-BASED REDIRECT
         if (result.role === 'System Administrator') {
-            router.push('/admin'); // Admin goes to Dashboard
+            router.push('/admin'); 
         } else {
-            router.push('/home'); // Customers go to Home
+            router.push('/home'); 
         }
       } else {
         setLoginError('Invalid email/username or password.');
       }
     } else {
-      // Sign Up (New users are always Customers)
-      if(!formData.fullName || !formData.email || !formData.password) {
-        setLoginError('Please fill in all required fields.');
-        return;
+      // --- SIGN UP LOGIC ---
+
+      // 1. Run Validation
+      const validationError = validateRegisterForm();
+      if (validationError) {
+        setLoginError(validationError);
+        return; // Stop execution
       }
 
-      const result = register(formData);
+      // 2. Register (Async)
+      const result = await register(formData);
 
       if (result.success) {
         console.log('Registration Success!');
@@ -81,8 +121,6 @@ const LoginPage = () => {
       }
     }
   };
-
-  // --- RENDER HELPERS ---
 
   const renderLanding = () => (
     <Container maxWidth="xs">
@@ -114,8 +152,9 @@ const LoginPage = () => {
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Typography>
       </Box>
 
+      {/* ERROR ALERT */}
       <Collapse in={!!loginError}>
-        <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>
+        <Alert severity="error" sx={{ mb: 2, fontSize: '0.85rem' }}>{loginError}</Alert>
       </Collapse>
 
       {isSignUp && (
@@ -129,6 +168,13 @@ const LoginPage = () => {
       )}
 
       <TextField fullWidth name="password" label="Password" type={showPassword ? 'text' : 'password'} variant="outlined" margin="dense" value={formData.password} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon color="action" /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+      
+      {/* Helper text for Password Requirements */}
+      {isSignUp && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>
+          * Passwords must be at least 8 characters with 1 Upper, 1 Lower, 1 Number, and 1 Special char.
+        </Typography>
+      )}
 
       <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 3, py: 1.5, borderRadius: 2, bgcolor: isSignUp ? '#FFC107' : 'black', color: isSignUp ? 'black' : 'white', '&:hover': { bgcolor: isSignUp ? '#FFB300' : 'grey.800' } }}>
         {isSignUp ? 'Sign Up' : 'Log In'}
