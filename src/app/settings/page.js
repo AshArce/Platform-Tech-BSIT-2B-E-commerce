@@ -5,7 +5,9 @@ import React, { useState } from 'react';
 import { 
   Box, Container, Typography, Paper, List, ListItem, ListItemText, 
   ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, IconButton,
-  ListItemButton // 1. Added this import
+  ListItemButton,
+  // Dialog components for popups
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -17,14 +19,64 @@ import EmailIcon from '@mui/icons-material/Email';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useRouter } from 'next/navigation';
 
+// IMPORT NEW SEPARATED COMPONENTS
+import TermsDialog from '../components/TermsDialog'; 
+import PrivacyDialog from '../components/PrivacyDialog';
+
 export default function SettingsPage() {
   const router = useRouter();
+  
+  // STATE VARIABLES
   const [pushNotifications, setPushNotifications] = useState(true);
+  
+  // Location Dialog State
+  const [location, setLocation] = useState("Batangas City, Philippines"); 
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false); 
+  const [tempLocation, setTempLocation] = useState(""); 
+  
+  // Terms of Service Dialog State
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
-  // Handlers
+  // Data Policy Dialog State
+  const [isDataPolicyOpen, setIsDataPolicyOpen] = useState(false);
+
+  // --- HANDLERS ---
   const handleBack = () => router.back();
-  const handleEditLocation = () => console.log('Edit location clicked');
   const handleNavClick = (route) => console.log(`Maps to ${route}`);
+
+  // Location Dialog Handlers
+  const handleOpenLocationDialog = () => {
+    setTempLocation(location); 
+    setIsLocationDialogOpen(true);     
+  };
+
+  const handleCloseLocationDialog = () => {
+    setIsLocationDialogOpen(false);    
+  };
+
+  const handleSaveLocation = () => {
+    setLocation(tempLocation); 
+    setIsLocationDialogOpen(false);    
+  };
+  
+  // Terms of Service Dialog Handlers
+  const handleOpenTerms = () => {
+    setIsTermsOpen(true);
+  };
+
+  const handleCloseTerms = () => {
+    setIsTermsOpen(false);
+  };
+
+  // Data Policy Dialog Handlers
+  const handleOpenDataPolicy = () => {
+    setIsDataPolicyOpen(true);
+  };
+
+  const handleCloseDataPolicy = () => {
+    setIsDataPolicyOpen(false);
+  };
+
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
@@ -55,10 +107,15 @@ export default function SettingsPage() {
               </ListItemIcon>
               <ListItemText 
                 primary="Location Settings" 
-                secondary="Batangas City, Philippines" 
+                secondary={location}
                 primaryTypographyProps={{ fontWeight: 'medium' }}
               />
-              <Button variant="outlined" size="small" onClick={handleEditLocation} sx={{ borderRadius: 2 }}>
+              <Button 
+                variant="outlined" 
+                size="small" 
+                onClick={handleOpenLocationDialog} // Use open handler
+                sx={{ borderRadius: 2 }}
+              >
                 Change
               </Button>
             </ListItem>
@@ -95,11 +152,9 @@ export default function SettingsPage() {
         <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
           <List disablePadding>
             
-            {/* 2. REPLACED <ListItem button> with <ListItemButton> */}
-            
-            {/* Terms of Service */}
+            {/* Terms of Service (Triggers Full Screen Modal) */}
             <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/terms')} sx={{ py: 2 }}>
+              <ListItemButton onClick={handleOpenTerms} sx={{ py: 2 }}>
                 <ListItemIcon><DescriptionIcon color="action" /></ListItemIcon>
                 <ListItemText primary="Terms of Service" />
                 <ChevronRightIcon color="action" />
@@ -107,9 +162,9 @@ export default function SettingsPage() {
             </ListItem>
             <Divider variant="inset" component="li" />
 
-            {/* Data Policy */}
+            {/* Data Policy (Triggers Full Screen Modal) */}
             <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/privacy')} sx={{ py: 2 }}>
+              <ListItemButton onClick={handleOpenDataPolicy} sx={{ py: 2 }}>
                 <ListItemIcon><PrivacyTipIcon color="action" /></ListItemIcon>
                 <ListItemText primary="Data Policy" />
                 <ChevronRightIcon color="action" />
@@ -139,6 +194,35 @@ export default function SettingsPage() {
           </List>
         </Paper>
 
+        {/* --- DIALOG 1: EDIT LOCATION POPUP (SMALL DIALOG) --- */}
+        <Dialog open={isLocationDialogOpen} onClose={handleCloseLocationDialog} fullWidth maxWidth="xs">
+          <DialogTitle>Update Location</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Enter new location"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={tempLocation}
+              onChange={(e) => setTempLocation(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseLocationDialog} color="inherit">Cancel</Button>
+            <Button onClick={handleSaveLocation} variant="contained" color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* --- DIALOG 2: TERMS OF SERVICE (SEPARATED COMPONENT) --- */}
+        <TermsDialog open={isTermsOpen} onClose={handleCloseTerms} />
+
+        {/* --- DIALOG 3: DATA POLICY (SEPARATED COMPONENT) --- */}
+        <PrivacyDialog open={isDataPolicyOpen} onClose={handleCloseDataPolicy} />
+        
       </Container>
     </Box>
   );
