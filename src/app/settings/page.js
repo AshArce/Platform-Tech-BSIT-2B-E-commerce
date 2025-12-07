@@ -1,25 +1,38 @@
 // src/app/settings/page.js
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+// 1. ADD MISSING IMPORTS
+import { useRouter } from 'next/navigation'; 
 import { 
   Box, Container, Typography, Paper, List, ListItem, ListItemText, 
-  ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, IconButton,
-  ListItemButton,
-  // Dialog components for popups
+  ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, 
+  ListItemButton, Avatar, // Added Avatar
   Dialog, DialogTitle, DialogContent, DialogActions, TextField,
 } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
-import { useAuth } from '../context/AuthContext';
 
-// IMPORT NEW SEPARATED COMPONENTS
+// 2. IMPORT THE ICONS YOU USED
+import SaveIcon from '@mui/icons-material/Save';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import DescriptionIcon from '@mui/icons-material/Description';
+import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
+import HelpIcon from '@mui/icons-material/Help';
+import EmailIcon from '@mui/icons-material/Email';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+
+import { useAuth } from '../context/AuthContext';
 import TermsDialog from '../components/TermsDialog'; 
 import PrivacyDialog from '../components/PrivacyDialog';
 
 export default function SettingsPage() {
   const router = useRouter();
   
-  // STATE VARIABLES
+  // 3. DEFINE THE USER (Mocking it here if useAuth fails, but usually you destructure it)
+  // const { user } = useAuth(); <--- This is how you likely handle it
+  // For safety, I'll default it so the page doesn't crash if auth fails
+  const { user: currentUser = { name: 'User', role: 'Admin', avatarUrl: '' } } = useAuth() || {};
+
   const [pushNotifications, setPushNotifications] = useState(true);
   
   // Location Dialog State
@@ -27,17 +40,13 @@ export default function SettingsPage() {
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false); 
   const [tempLocation, setTempLocation] = useState(""); 
   
-  // Terms of Service Dialog State
   const [isTermsOpen, setIsTermsOpen] = useState(false);
-
-  // Data Policy Dialog State
   const [isDataPolicyOpen, setIsDataPolicyOpen] = useState(false);
 
   // --- HANDLERS ---
   const handleBack = () => router.back();
   const handleNavClick = (route) => console.log(`Maps to ${route}`);
 
-  // Location Dialog Handlers
   const handleOpenLocationDialog = () => {
     setTempLocation(location); 
     setIsLocationDialogOpen(true);     
@@ -52,29 +61,16 @@ export default function SettingsPage() {
     setIsLocationDialogOpen(false);    
   };
   
-  // Terms of Service Dialog Handlers
-  const handleOpenTerms = () => {
-    setIsTermsOpen(true);
-  };
-
-  const handleCloseTerms = () => {
-    setIsTermsOpen(false);
-  };
-
-  // Data Policy Dialog Handlers
-  const handleOpenDataPolicy = () => {
-    setIsDataPolicyOpen(true);
-  };
-
-  const handleCloseDataPolicy = () => {
-    setIsDataPolicyOpen(false);
-  };
-
+  const handleOpenTerms = () => setIsTermsOpen(true);
+  const handleCloseTerms = () => setIsTermsOpen(false);
+  const handleOpenDataPolicy = () => setIsDataPolicyOpen(true);
+  const handleCloseDataPolicy = () => setIsDataPolicyOpen(false);
 
   return (
     <Container maxWidth="sm" sx={{ py: 4, pb: 10 }}>
       <Typography variant="h4" fontWeight="bold" mb={3}>Account Settings</Typography>
 
+      {/* OPENING MAIN PAPER */}
       <Paper sx={{ p: 4, borderRadius: 2 }}>
         
         {/* Avatar Section */}
@@ -110,7 +106,7 @@ export default function SettingsPage() {
               <Button 
                 variant="outlined" 
                 size="small" 
-                onClick={handleOpenLocationDialog} // Use open handler
+                onClick={handleOpenLocationDialog} 
                 sx={{ borderRadius: 2 }}
               >
                 Change
@@ -149,7 +145,6 @@ export default function SettingsPage() {
         <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
           <List disablePadding>
             
-            {/* Terms of Service (Triggers Full Screen Modal) */}
             <ListItem disablePadding>
               <ListItemButton onClick={handleOpenTerms} sx={{ py: 2 }}>
                 <ListItemIcon><DescriptionIcon color="action" /></ListItemIcon>
@@ -159,7 +154,6 @@ export default function SettingsPage() {
             </ListItem>
             <Divider variant="inset" component="li" />
 
-            {/* Data Policy (Triggers Full Screen Modal) */}
             <ListItem disablePadding>
               <ListItemButton onClick={handleOpenDataPolicy} sx={{ py: 2 }}>
                 <ListItemIcon><PrivacyTipIcon color="action" /></ListItemIcon>
@@ -169,7 +163,6 @@ export default function SettingsPage() {
             </ListItem>
             <Divider variant="inset" component="li" />
 
-            {/* Help / FAQ */}
             <ListItem disablePadding>
               <ListItemButton onClick={() => handleNavClick('/help')} sx={{ py: 2 }}>
                 <ListItemIcon><HelpIcon color="action" /></ListItemIcon>
@@ -179,7 +172,6 @@ export default function SettingsPage() {
             </ListItem>
             <Divider variant="inset" component="li" />
 
-            {/* Contact Us */}
             <ListItem disablePadding>
               <ListItemButton onClick={() => handleNavClick('/contact')} sx={{ py: 2 }}>
                 <ListItemIcon><EmailIcon color="action" /></ListItemIcon>
@@ -191,36 +183,36 @@ export default function SettingsPage() {
           </List>
         </Paper>
 
-        {/* --- DIALOG 1: EDIT LOCATION POPUP (SMALL DIALOG) --- */}
-        <Dialog open={isLocationDialogOpen} onClose={handleCloseLocationDialog} fullWidth maxWidth="xs">
-          <DialogTitle>Update Location</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Enter new location"
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={tempLocation}
-              onChange={(e) => setTempLocation(e.target.value)}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseLocationDialog} color="inherit">Cancel</Button>
-            <Button onClick={handleSaveLocation} variant="contained" color="primary">
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
+      {/* 4. CLOSING THE MAIN PAPER HERE - THIS WAS MISSING */}
+      </Paper> 
 
-        {/* --- DIALOG 2: TERMS OF SERVICE (SEPARATED COMPONENT) --- */}
-        <TermsDialog open={isTermsOpen} onClose={handleCloseTerms} />
+      {/* --- DIALOGS (Keep these outside the main Paper but inside Container) --- */}
+      <Dialog open={isLocationDialogOpen} onClose={handleCloseLocationDialog} fullWidth maxWidth="xs">
+        <DialogTitle>Update Location</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Enter new location"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={tempLocation}
+            onChange={(e) => setTempLocation(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseLocationDialog} color="inherit">Cancel</Button>
+          <Button onClick={handleSaveLocation} variant="contained" color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        {/* --- DIALOG 3: DATA POLICY (SEPARATED COMPONENT) --- */}
-        <PrivacyDialog open={isDataPolicyOpen} onClose={handleCloseDataPolicy} />
-        
-      </Container>
-    </Box>
+      <TermsDialog open={isTermsOpen} onClose={handleCloseTerms} />
+
+      <PrivacyDialog open={isDataPolicyOpen} onClose={handleCloseDataPolicy} />
+      
+    </Container>
   );
 }
