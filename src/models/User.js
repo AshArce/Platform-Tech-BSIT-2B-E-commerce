@@ -2,12 +2,13 @@
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
-  id: { type: Number, unique: true }, // Simple numeric ID
+  id: { type: Number, unique: true }, 
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // In a real app, this would be hashed!
+  username: { type: String, unique: true, sparse: true }, 
+  password: { type: String, required: true }, 
   phone: { type: String },
-  role: { type: String, default: 'Foodie Member' }, // 'Foodie Member' or 'System Administrator'
+  role: { type: String, default: 'Foodie Member' }, 
   avatarUrl: { type: String },
   createdAt: { type: Date, default: Date.now },
 });

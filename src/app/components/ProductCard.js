@@ -2,12 +2,16 @@
 'use client';
 
 import React from 'react';
-import { Card, CardActions, CardContent, CardMedia, Button, Typography, Box, CardActionArea } from '@mui/material';
+import { Card, CardActions, CardContent, CardMedia, Button, Typography, Box, CardActionArea, Chip } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import BlockIcon from '@mui/icons-material/Block'; // Icon for out of stock
 
-// Note: onProductClick replaces the old NextLink logic
 const ProductCard = ({ product, onProductClick }) => {
-  const { name, price, description, imageUrl, inStock } = product;
+  const { name, price, description, imageUrl, stockCount } = product;
+  
+  // Calculate stock status based on the database count
+  const isOutOfStock = stockCount <= 0;
+  const isLowStock = stockCount > 0 && stockCount < 10;
 
   return (
     <Card 
@@ -16,12 +20,34 @@ const ProductCard = ({ product, onProductClick }) => {
         height: '100%', 
         display: 'flex', 
         flexDirection: 'column',
+        borderRadius: 3,
+        boxShadow: 3,
+        position: 'relative', // Needed for absolute positioning of badge
         transition: 'transform 0.2s',
-        '&:hover': { transform: 'scale(1.02)' } 
+        '&:hover': { 
+            transform: isOutOfStock ? 'none' : 'scale(1.02)',
+            boxShadow: isOutOfStock ? 3 : 6
+        },
+        // 🌑 GRAYSCALE EFFECT: Visual cue for out of stock
+        opacity: isOutOfStock ? 0.7 : 1,
+        filter: isOutOfStock ? 'grayscale(100%)' : 'none'
       }}
     >
-      {/* 1. Make the top part clickable to open modal */}
-      <CardActionArea onClick={() => onProductClick(product)} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      {/* 🏷️ STOCK BADGE */}
+      <Box sx={{ position: 'absolute', top: 10, left: 10, zIndex: 10 }}>
+        <Chip 
+            label={isOutOfStock ? "Out of Stock" : `${stockCount} left`} 
+            color={isOutOfStock ? "default" : (isLowStock ? "warning" : "success")} 
+            size="small" 
+            sx={{ fontWeight: 'bold', bgcolor: isOutOfStock ? 'rgba(0,0,0,0.7)' : undefined, color: isOutOfStock ? 'white' : undefined }}
+        />
+      </Box>
+
+      <CardActionArea 
+        onClick={() => onProductClick(product)} 
+        disabled={isOutOfStock} // Disable clicking the image if out of stock
+        sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
+      >
         <CardMedia
           component="img"
           height="140"
@@ -39,25 +65,24 @@ const ProductCard = ({ product, onProductClick }) => {
              display: '-webkit-box',
              overflow: 'hidden',
              WebkitBoxOrient: 'vertical',
-             WebkitLineClamp: 2, // Limit description lines
+             WebkitLineClamp: 2, 
           }}>
             {description}
           </Typography>
         </CardContent>
       </CardActionArea>
 
-      {/* 2. Direct Add Button (Optional: Can also just open modal) */}
       <CardActions sx={{ p: 2, pt: 0 }}>
         <Button
           fullWidth
           variant="contained"
-          color="secondary"
-          startIcon={<AddShoppingCartIcon />}
-          onClick={() => onProductClick(product)} // Opens modal to select options
-          disabled={!inStock}
+          color={isOutOfStock ? "inherit" : "secondary"}
+          startIcon={isOutOfStock ? <BlockIcon /> : <AddShoppingCartIcon />}
+          onClick={() => onProductClick(product)} 
+          disabled={isOutOfStock}
           sx={{ borderRadius: 2 }}
         >
-          {inStock ? 'Add' : 'Sold Out'}
+          {isOutOfStock ? 'Sold Out' : 'Add'}
         </Button>
       </CardActions>
     </Card>

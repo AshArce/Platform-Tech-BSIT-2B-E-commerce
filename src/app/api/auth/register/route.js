@@ -2,28 +2,36 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
-import bcrypt from 'bcryptjs'; // 1. Import bcrypt
+import bcrypt from 'bcryptjs';
 
 export async function POST(request) {
   try {
     await connectToDatabase();
-    const { fullName, email, phone, password } = await request.json();
+    // 1. Get username from request
+    const { fullName, email, phone, password, username } = await request.json();
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return NextResponse.json({ message: 'User already exists' }, { status: 400 });
+    // 2. Check if EMAIL exists
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return NextResponse.json({ message: 'Email already exists' }, { status: 400 });
     }
 
-    // 2. Hash the password (10 rounds of salting)
+    // 3. Check if USERNAME exists (New Check)
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return NextResponse.json({ message: 'Username is already taken' }, { status: 400 });
+    }
+
+    // 4. Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
       id: Date.now(),
       name: fullName,
-      username: email.split('@')[0],
+      username: username, // Use the manual input
       email,
       phone,
-      password: hashedPassword, // 3. Save the HASH, not the plain text
+      password: hashedPassword,
       role: 'Foodie Member',
       avatarUrl: `https://via.placeholder.com/150?text=${fullName.charAt(0).toUpperCase()}`
     });

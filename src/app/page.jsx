@@ -13,7 +13,8 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import EmailIcon from '@mui/icons-material/Email'; 
 import LockIcon from '@mui/icons-material/Lock'; 
 import PersonIcon from '@mui/icons-material/Person'; 
-import PhoneIcon from '@mui/icons-material/Phone';   
+import PhoneIcon from '@mui/icons-material/Phone'; 
+import BadgeIcon from '@mui/icons-material/Badge'; // New Icon for Username
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -28,8 +29,10 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
+  // 1. ADD USERNAME TO STATE
   const [formData, setFormData] = useState({
     fullName: '',
+    username: '', // New Field
     email: '', 
     phone: '',
     password: '',
@@ -43,55 +46,65 @@ const LoginPage = () => {
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  // --- 🔒 VALIDATION LOGIC ---
+  // --- 🔒 UPDATED VALIDATION LOGIC ---
   const validateRegisterForm = () => {
-    const { fullName, email, phone, password } = formData;
+    const { fullName, username, email, phone, password } = formData;
 
-    // 1. Full Name Validation
-    // > 5 chars, no special chars (letters only), no leading space, no consecutive spaces
+    // 1. FULL NAME VALIDATION
+    // Rule: More than 5 chars
     if (fullName.length <= 5) {
         return "Full Name must be more than 5 characters.";
     }
-    // Regex breakdown:
-    // ^[a-zA-Z0-9]+  -> Starts with a letter/number (no spaces/special chars)
-    // ( [a-zA-Z0-9]+)*$ -> Allows 1 space followed by more text (repeating), but no consecutive spaces
-    const nameRegex = /^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$/;
-    if (!nameRegex.test(fullName)) {
-        return "Name cannot start with a space, contain special characters, or have double spaces.";
+    // Rule: No special characters (Only Letters, Numbers, and Spaces allowed)
+    // Regex: ^[a-zA-Z0-9 ]+$ means "Start to end, only allow letters, numbers, and space"
+    if (!/^[a-zA-Z0-9 ]+$/.test(fullName)) {
+        return "Full Name cannot contain special characters (@, #, $, etc).";
+    }
+    // Rule: No leading space
+    if (fullName.startsWith(' ')) {
+        return "Full Name cannot start with a space.";
+    }
+    // Rule: No double spaces / consecutive spaces
+    if (fullName.includes('  ')) {
+        return "Full Name cannot contain double spaces.";
     }
 
-    // 2. Email Validation (@ and .com)
+    // 2. USERNAME VALIDATION (New)
+    if (!username || username.length < 3) {
+        return "Username must be at least 3 characters.";
+    }
+    // Username shouldn't have spaces
+    if (/\s/.test(username)) {
+        return "Username cannot contain spaces.";
+    }
+
+    // 3. Email Validation (@ and .com)
     if (!email.includes('@') || !email.endsWith('.com')) {
         return "Email must contain '@' and end with '.com'.";
     }
 
-    // 3. Phone Number (Numbers only, 9-11 digits)
+    // 4. Phone Number (Numbers only, 9-11 digits)
     const phoneRegex = /^[0-9]{9,11}$/;
     if (!phoneRegex.test(phone)) {
         return "Phone number must be digits only and between 9-11 numbers.";
     }
 
-    // 4. Password Validation (Strong + Min 8)
-    // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+    // 5. Password Validation
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    
-    // NOTE: If this is too strict for testing, you can use: /.{8,}/ (Just min 8 chars)
     if (!strongPasswordRegex.test(password)) {
-        return "Password must be at least 8 characters and include 1 Uppercase, 1 Lowercase, 1 Number, and 1 Special Character.";
+        return "Password must be at least 8 chars (1 Upper, 1 Lower, 1 Number, 1 Special Char).";
     }
 
-    return null; // No errors
+    return null; // Passed
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (view === 'LOGIN') {
-      // Login Logic (Async)
       const result = await login(formData.email, formData.password); 
 
       if (result.success) {
-        console.log('Login Success! Role:', result.role);
         if (result.role === 'System Administrator') {
             router.push('/admin'); 
         } else {
@@ -101,20 +114,16 @@ const LoginPage = () => {
         setLoginError('Invalid email/username or password.');
       }
     } else {
-      // --- SIGN UP LOGIC ---
-
-      // 1. Run Validation
+      // --- SIGN UP ---
       const validationError = validateRegisterForm();
       if (validationError) {
         setLoginError(validationError);
-        return; // Stop execution
+        return; 
       }
 
-      // 2. Register (Async)
       const result = await register(formData);
 
       if (result.success) {
-        console.log('Registration Success!');
         router.push('/home'); 
       } else {
         setLoginError(result.message); 
@@ -152,13 +161,17 @@ const LoginPage = () => {
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Typography>
       </Box>
 
-      {/* ERROR ALERT */}
       <Collapse in={!!loginError}>
         <Alert severity="error" sx={{ mb: 2, fontSize: '0.85rem' }}>{loginError}</Alert>
       </Collapse>
 
       {isSignUp && (
-        <TextField fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense" value={formData.fullName} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }} />
+        <>
+            <TextField fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense" value={formData.fullName} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }} />
+            
+            {/* NEW USERNAME FIELD */}
+            <TextField fullWidth name="username" label="Username" variant="outlined" margin="dense" value={formData.username} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><BadgeIcon color="action" /></InputAdornment>) }} />
+        </>
       )}
 
       <TextField fullWidth name="email" label={isSignUp ? "Email Address" : "Email/Phone/Username"} variant="outlined" margin="dense" value={formData.email} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>) }} />
@@ -169,7 +182,6 @@ const LoginPage = () => {
 
       <TextField fullWidth name="password" label="Password" type={showPassword ? 'text' : 'password'} variant="outlined" margin="dense" value={formData.password} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon color="action" /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
       
-      {/* Helper text for Password Requirements */}
       {isSignUp && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>
           * Passwords must be at least 8 characters with 1 Upper, 1 Lower, 1 Number, and 1 Special char.
@@ -202,7 +214,7 @@ const LoginPage = () => {
       {view === 'LANDING' && (
         <Box sx={{ mb: 4, color: 'white' }}>
           <Typography variant="h2" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-            <img src="image/icon.png" alt="Logo" style={{ maxWidth: '250px',}} />
+            <img src="/vercel.svg" alt="Logo" style={{ maxWidth: '150px', filter: 'invert(100%) brightness(200%)' }} />
           </Typography>
           <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2, color: 'black' }}>E-BIKE EXPRESS</Typography>
           <Typography variant="h6" sx={{ mt: 1, color: 'black' }}>Find Your Flavor Faster</Typography>
@@ -215,4 +227,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default LoginPage; 
