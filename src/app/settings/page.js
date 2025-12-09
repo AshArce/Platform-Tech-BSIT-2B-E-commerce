@@ -6,12 +6,11 @@ import { useRouter } from 'next/navigation';
 import { 
   Box, Container, Typography, Paper, List, ListItem, ListItemText, 
   ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, 
-  ListItemButton, Avatar,
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+  ListItemButton, Avatar, Dialog, DialogTitle, DialogContent, 
+  DialogActions, TextField, IconButton, Stack
 } from '@mui/material';
 
-// 2. IMPORT THE ICONS USED
-import SaveIcon from '@mui/icons-material/Save';
+// Icons
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -19,6 +18,9 @@ import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import HelpIcon from '@mui/icons-material/Help';
 import EmailIcon from '@mui/icons-material/Email';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import EditIcon from '@mui/icons-material/Edit';
+import LogoutIcon from '@mui/icons-material/Logout';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { useAuth } from '../context/AuthContext';
 import TermsDialog from '../components/TermsDialog'; 
@@ -26,16 +28,15 @@ import PrivacyDialog from '../components/PrivacyDialog';
 
 export default function SettingsPage() {
   const router = useRouter();
-  
-  // 3. DEFINE THE USER (Mocking it here if useAuth fails, but usually you destructure it)
-  // const { user } = useAuth(); <--- This is how you likely handle it
-  // For safety, I'll default it so the page doesn't crash if auth fails
-  const { user: currentUser = { name: 'User', role: 'Admin', avatarUrl: '' } } = useAuth() || {};
+  const { currentUser, logout } = useAuth(); // Get logout from context
+
+  // Default Fallback in case context is loading
+  const user = currentUser || { name: 'Guest', role: 'Visitor', avatarUrl: '' };
 
   const [pushNotifications, setPushNotifications] = useState(true);
   
   // Location Dialog State
-  const [location, setLocation] = useState("Batangas City, Philippines"); 
+  const [location, setLocation] = useState("Biringan City, Philippines"); 
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false); 
   const [tempLocation, setTempLocation] = useState(""); 
   
@@ -43,8 +44,15 @@ export default function SettingsPage() {
   const [isDataPolicyOpen, setIsDataPolicyOpen] = useState(false);
 
   // --- HANDLERS ---
-  const handleBack = () => router.back();
-  const handleNavClick = (route) => console.log(`Maps to ${route}`);
+  const handleNavClick = (route) => {
+    // Navigate to actual routes
+    router.push(route);
+  };
+
+  const handleLogout = () => {
+    if (logout) logout();
+    router.push('/');
+  };
 
   const handleOpenLocationDialog = () => {
     setTempLocation(location); 
@@ -59,158 +67,158 @@ export default function SettingsPage() {
     setLocation(tempLocation); 
     setIsLocationDialogOpen(false);    
   };
-  
-  const handleOpenTerms = () => setIsTermsOpen(true);
-  const handleCloseTerms = () => setIsTermsOpen(false);
-  const handleOpenDataPolicy = () => setIsDataPolicyOpen(true);
-  const handleCloseDataPolicy = () => setIsDataPolicyOpen(false);
 
   return (
     <Container maxWidth="sm" sx={{ py: 4, pb: 10 }}>
-      <Typography variant="h4" fontWeight="bold" mb={3}>Account Settings</Typography>
+      
+      {/* Header with Back Button */}
+      <Box display="flex" alignItems="center" mb={3}>
+        <IconButton onClick={() => router.back()} sx={{ mr: 1 }}>
+            <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h4" fontWeight="bold">Settings</Typography>
+      </Box>
 
-      {/* OPENING MAIN PAPER */}
-      <Paper sx={{ p: 4, borderRadius: 2 }}>
-        
-        {/* Avatar Section */}
-        <Box display="flex" flexDirection="column" alignItems="center" mb={4}>
+      {/* --- PROFILE CARD SECTION --- */}
+      <Paper elevation={3} sx={{ p: 3, borderRadius: 4, mb: 4, background: 'linear-gradient(135deg, #FFC107 0%, #FF9800 100%)', color: 'white' }}>
+        <Box display="flex" alignItems="center" gap={2}>
             <Avatar 
-                src={currentUser.avatarUrl} 
-                sx={{ width: 80, height: 80, mb: 2, bgcolor: 'primary.main', fontSize: 32 }}
+                src={user.avatarUrl} 
+                sx={{ width: 70, height: 70, bgcolor: 'white', color: 'primary.main', fontSize: 30, fontWeight: 'bold', border: '2px solid white' }}
             >
-                {currentUser.name ? currentUser.name[0] : 'U'}
+                {user.name ? user.name[0].toUpperCase() : 'U'}
             </Avatar>
-            <Typography variant="h6">{currentUser.name}</Typography>
-            <Typography variant="body2" color="text.secondary">{currentUser.role}</Typography>
+            <Box flexGrow={1}>
+                <Typography variant="h6" fontWeight="bold">{user.name}</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>{user.role}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8 }}>{user.email || 'No email linked'}</Typography>
+            </Box>
         </Box>
+      </Paper>
 
-        {/* SECTION 1: General Settings */}
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, ml: 1, textTransform: 'uppercase', fontWeight: 'bold' }}>
-          General
-        </Typography>
-        
-        <Paper elevation={0} sx={{ borderRadius: 3, mb: 4, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
-          <List disablePadding>
-            
-            {/* Location Settings */}
-            <ListItem sx={{ py: 2 }}>
-              <ListItemIcon>
-                <LocationOnIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Location Settings" 
-                secondary={location}
-                primaryTypographyProps={{ fontWeight: 'medium' }}
+      {/* --- SETTINGS LIST --- */}
+      <Paper elevation={1} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
+        <List disablePadding>
+          
+          {/* SECTION HEADER */}
+          <Box sx={{ bgcolor: '#f5f5f5', px: 2, py: 1 }}>
+            <Typography variant="caption" fontWeight="bold" color="text.secondary">PREFERENCES</Typography>
+          </Box>
+
+          {/* Location Settings */}
+          <ListItem sx={{ py: 2 }}>
+            <ListItemIcon>
+              <LocationOnIcon color="primary" />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Delivery Location" 
+              secondary={location}
+              primaryTypographyProps={{ fontWeight: 'medium' }}
+            />
+            <Button variant="text" size="small" onClick={handleOpenLocationDialog}>
+              Edit
+            </Button>
+          </ListItem>
+
+          <Divider variant="inset" component="li" />
+
+          {/* Push Notifications */}
+          <ListItem sx={{ py: 2 }}>
+            <ListItemIcon>
+              <NotificationsIcon color="action" />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Notifications" 
+              secondary="Order updates & promos"
+              primaryTypographyProps={{ fontWeight: 'medium' }}
+            />
+            <ListItemSecondaryAction>
+              <Switch 
+                edge="end" 
+                checked={pushNotifications} 
+                onChange={(e) => setPushNotifications(e.target.checked)} 
               />
-              <Button 
-                variant="outlined" 
-                size="small" 
-                onClick={handleOpenLocationDialog} 
-                sx={{ borderRadius: 2 }}
-              >
-                Change
-              </Button>
-            </ListItem>
+            </ListItemSecondaryAction>
+          </ListItem>
 
-            <Divider variant="middle" />
+          {/* SECTION HEADER */}
+          <Box sx={{ bgcolor: '#f5f5f5', px: 2, py: 1 }}>
+            <Typography variant="caption" fontWeight="bold" color="text.secondary">SUPPORT & LEGAL</Typography>
+          </Box>
 
-            {/* Push Notifications */}
-            <ListItem sx={{ py: 2 }}>
-              <ListItemIcon>
-                <NotificationsIcon color="action" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Push Notifications" 
-                secondary="Receive delivery updates on your device"
-                primaryTypographyProps={{ fontWeight: 'medium' }}
-              />
-              <ListItemSecondaryAction>
-                <Switch 
-                  edge="end" 
-                  checked={pushNotifications} 
-                  onChange={(e) => setPushNotifications(e.target.checked)} 
-                />
-              </ListItemSecondaryAction>
-            </ListItem>
+          <ListItemButton onClick={() => setIsTermsOpen(true)} sx={{ py: 2 }}>
+            <ListItemIcon><DescriptionIcon color="action" /></ListItemIcon>
+            <ListItemText primary="Terms of Service" />
+            <ChevronRightIcon color="action" fontSize="small" />
+          </ListItemButton>
+          
+          <Divider variant="inset" component="li" />
 
-          </List>
-        </Paper>
+          <ListItemButton onClick={() => setIsDataPolicyOpen(true)} sx={{ py: 2 }}>
+            <ListItemIcon><PrivacyTipIcon color="action" /></ListItemIcon>
+            <ListItemText primary="Privacy Policy" />
+            <ChevronRightIcon color="action" fontSize="small" />
+          </ListItemButton>
 
-        {/* SECTION 2: Support */}
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, ml: 1, textTransform: 'uppercase', fontWeight: 'bold' }}>
-          Support & Legal
-        </Typography>
+          <Divider variant="inset" component="li" />
 
-        <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
-          <List disablePadding>
-            
-            <ListItem disablePadding>
-              <ListItemButton onClick={handleOpenTerms} sx={{ py: 2 }}>
-                <ListItemIcon><DescriptionIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Terms of Service" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-            <Divider variant="inset" component="li" />
+          <ListItemButton onClick={() => handleNavClick('/help')} sx={{ py: 2 }}>
+            <ListItemIcon><HelpIcon color="action" /></ListItemIcon>
+            <ListItemText primary="Help Center" />
+            <ChevronRightIcon color="action" fontSize="small" />
+          </ListItemButton>
 
-            <ListItem disablePadding>
-              <ListItemButton onClick={handleOpenDataPolicy} sx={{ py: 2 }}>
-                <ListItemIcon><PrivacyTipIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Data Policy" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-            <Divider variant="inset" component="li" />
+          <Divider variant="inset" component="li" />
 
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/help')} sx={{ py: 2 }}>
-                <ListItemIcon><HelpIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Help / FAQ" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
-            <Divider variant="inset" component="li" />
+          <ListItemButton onClick={() => handleNavClick('/contact')} sx={{ py: 2 }}>
+            <ListItemIcon><EmailIcon color="action" /></ListItemIcon>
+            <ListItemText primary="Contact Us" />
+            <ChevronRightIcon color="action" fontSize="small" />
+          </ListItemButton>
 
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleNavClick('/contact')} sx={{ py: 2 }}>
-                <ListItemIcon><EmailIcon color="action" /></ListItemIcon>
-                <ListItemText primary="Contact Us" />
-                <ChevronRightIcon color="action" />
-              </ListItemButton>
-            </ListItem>
+        </List>
+      </Paper>
 
-          </List>
-        </Paper>
+      {/* LOGOUT BUTTON */}
+      <Button 
+        variant="outlined" 
+        color="error" 
+        fullWidth 
+        size="large" 
+        startIcon={<LogoutIcon />}
+        onClick={handleLogout}
+        sx={{ mt: 4, borderRadius: 2, py: 1.5, fontWeight: 'bold' }}
+      >
+        Log Out
+      </Button>
 
-      {/* 4. CLOSING THE MAIN PAPER HERE - THIS WAS MISSING */}
-      </Paper> 
-
-      {/* --- DIALOGS (Keep these outside the main Paper but inside Container) --- */}
+      {/* --- DIALOGS --- */}
       <Dialog open={isLocationDialogOpen} onClose={handleCloseLocationDialog} fullWidth maxWidth="xs">
         <DialogTitle>Update Location</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Enter new location"
+            label="Enter new delivery area"
             type="text"
             fullWidth
             variant="outlined"
             value={tempLocation}
             onChange={(e) => setTempLocation(e.target.value)}
+            helperText="Drivers will use this as default."
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseLocationDialog} color="inherit">Cancel</Button>
           <Button onClick={handleSaveLocation} variant="contained" color="primary">
-            Save
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>
 
-      <TermsDialog open={isTermsOpen} onClose={handleCloseTerms} />
-
-      <PrivacyDialog open={isDataPolicyOpen} onClose={handleCloseDataPolicy} />
+      {/* Reusing your existing components */}
+      <TermsDialog open={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+      <PrivacyDialog open={isDataPolicyOpen} onClose={() => setIsDataPolicyOpen(false)} />
       
     </Container>
   );
