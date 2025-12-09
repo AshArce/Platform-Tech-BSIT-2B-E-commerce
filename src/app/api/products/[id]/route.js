@@ -1,7 +1,7 @@
 // src/app/api/products/[id]/route.js
 import { NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';      // <--- Using @ is safer
-import Product from '@/models/Product';        // <--- Using @ is safer
+import connectToDatabase from '@/lib/db';     
+import Product from '@/models/Product';    
 
 // 1. GET: Fetch a SINGLE product
 export async function GET(request, { params }) {

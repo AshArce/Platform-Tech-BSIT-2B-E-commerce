@@ -26,7 +26,7 @@ export const ColorModeProvider = ({ children }) => {
       toggleColorMode: () => {
         setMode((prevMode) => {
           const newMode = prevMode === 'light' ? 'dark' : 'light';
-          localStorage.setItem('FOODIE_THEME', newMode); // Save preference
+          localStorage.setItem('FOODIE_THEME', newMode); 
           return newMode;
         });
       },

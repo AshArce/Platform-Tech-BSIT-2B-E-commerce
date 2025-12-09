@@ -9,12 +9,11 @@ export async function POST(request) {
     await connectToDatabase();
     const { identifier, password } = await request.json();
 
-    // 🔍 THIS IS THE SECRET SAUCE:
     // It checks Email OR Username OR Phone for the match
     const user = await User.findOne({
       $or: [
         { email: identifier },
-        { username: identifier }, // <--- THIS LINE MAKES IT WORK
+        { username: identifier },
         { phone: identifier }
       ]
     });

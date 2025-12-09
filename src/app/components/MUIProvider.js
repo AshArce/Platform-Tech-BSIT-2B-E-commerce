@@ -5,7 +5,7 @@ import React from 'react';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { getTheme } from '../../theme'; // Import the function, not the object
+import { getTheme } from '../../theme';
 import { ColorModeProvider, useColorMode } from '../context/ThemeContext';
 
 // We need a sub-component to access the useColorMode hook

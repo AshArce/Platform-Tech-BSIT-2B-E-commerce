@@ -2,16 +2,21 @@
 import mongoose from 'mongoose';
 
 const OrderItemSchema = new mongoose.Schema({
+  productId: { type: Number }, // Link to Product ID (Important for inventory)
   name: String,
   quantity: Number,
   price: Number,
-  size: String,
-  // You can add options like { utensils: Boolean } here if needed
+  size: String, 
+  selectedOptions: {
+    utensils: { type: Boolean, default: false },
+    straw: { type: Boolean, default: false },
+    hotSauce: { type: Boolean, default: false }
+  }
 });
 
 const OrderSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true }, // e.g. "ORD-1234"
-  userId: { type: Number, required: true }, // Links to User.id
+  userId: { type: Number, required: true }, 
   date: { type: String, default: () => new Date().toLocaleDateString() },
   total: { type: Number, required: true },
   status: { 

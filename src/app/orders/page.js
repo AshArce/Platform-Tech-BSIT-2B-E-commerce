@@ -13,7 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CancelIcon from '@mui/icons-material/Cancel';
 import MopedIcon from '@mui/icons-material/Moped';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'; // For pending refund
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'; 
 
 // Contexts
 import { useCart } from '../context/CartContext';
@@ -25,8 +25,8 @@ const getStatusColor = (status) => {
     case 'Cooking': return 'warning';
     case 'Waiting for Courier': return 'warning';
     case 'On the Way': return 'info';
-    case 'Refunded': return 'error'; // Red for final refund
-    case 'Refund Requested': return 'secondary'; // Purple/Orange for pending review
+    case 'Refunded': return 'error';
+    case 'Refund Requested': return 'secondary';
     case 'Cancelled': return 'error';
     default: return 'default';
   }
@@ -45,12 +45,10 @@ const getStatusIcon = (status) => {
   }
 };
 
-// Define Tabs
 const FILTER_TABS = [
   { label: 'All', statuses: [] }, 
   { label: 'To Receive', statuses: ['Cooking', 'Waiting for Courier', 'On the Way'] },
   { label: 'Delivered', statuses: ['Delivered'] },
-  // Include 'Refund Requested' in this tab
   { label: 'Refund/Cancel', statuses: ['Refunded', 'Cancelled', 'Refund Requested'] } 
 ];
 
@@ -105,7 +103,7 @@ export default function OrdersPage() {
           filteredOrders.map((order) => (
             <Paper key={order.id} sx={{ p: 3, borderRadius: 2, border: '1px solid #eee' }} elevation={0}>
               
-              {/* Header: ID, Date, Status */}
+              {/* Header */}
               <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                 <Box>
                   <Typography variant="subtitle1" fontWeight="bold">{order.id}</Typography>
@@ -125,19 +123,27 @@ export default function OrdersPage() {
               {/* Items List */}
               <Box sx={{ mb: 2 }}>
                 {order.items.map((item, index) => (
-                  <Grid container key={index} justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                    <Grid size={{ xs: 8 }}>
+                  <Grid container key={index} justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">
                         <strong style={{ marginRight: '8px' }}>{item.quantity}x</strong> 
                         {item.name}
                       </Typography>
-                      {item.quantity > 1 && (
-                        <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
-                          (@ ₱{item.price.toFixed(2)} each)
-                        </Typography>
-                      )}
+                      
+                      {/* 🆕 SHOW SIZE & OPTIONS FROM DB */}
+                      <Box display="flex" flexWrap="wrap" gap={0.5} mt={0.5} ml={3.5}>
+                            {item.size && (
+                                <Typography variant="caption" sx={{ bgcolor: '#eee', px: 0.5, borderRadius: 0.5, fontWeight: 'bold' }}>
+                                    {item.size}
+                                </Typography>
+                            )}
+                            {item.selectedOptions?.utensils && <Typography variant="caption" color="text.secondary">+ Utensils</Typography>}
+                            {item.selectedOptions?.straw && <Typography variant="caption" color="text.secondary">, + Straw</Typography>}
+                            {item.selectedOptions?.hotSauce && <Typography variant="caption" color="text.secondary">, + Hot Sauce</Typography>}
+                      </Box>
                     </Grid>
-                    <Grid size={{ xs: 4 }} textAlign="right">
+                    
+                    <Grid item xs={4} textAlign="right">
                       <Typography variant="body2" fontWeight="bold" color="text.primary">
                         ₱{(item.price * item.quantity).toFixed(2)}
                       </Typography>
@@ -157,70 +163,43 @@ export default function OrdersPage() {
                 </Box>
               </Box>
 
-              {/* --- ACTION BUTTONS --- */}
+              {/* Action Buttons */}
               <Box mt={3} display="flex" justifyContent="flex-end" gap={1}>
-                
-                {/* 1. Cooking: Can Cancel */}
                 {order.status === 'Cooking' && (
-                  <Button 
-                    variant="outlined" 
-                    color="error" 
-                    size="small" 
-                    startIcon={<CancelIcon />} 
-                    onClick={() => updateOrderStatus(order.id, 'Cancelled')}
-                  >
+                  <Button variant="outlined" color="error" size="small" startIcon={<CancelIcon />} onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
                     Cancel Order
                   </Button>
                 )}
-
-                {/* 2. Waiting: Info Only */}
+                
                 {order.status === 'Waiting for Courier' && (
                   <Typography variant="caption" color="warning.main" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <MopedIcon fontSize="small" /> Finding nearest rider...
                   </Typography>
                 )}
-
-                {/* 3. On the Way: Can Receive */}
+                
                 {order.status === 'On the Way' && (
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    size="small" 
-                    startIcon={<CheckCircleIcon />} 
-                    onClick={() => updateOrderStatus(order.id, 'Delivered')}
-                  >
+                  <Button variant="contained" color="primary" size="small" startIcon={<CheckCircleIcon />} onClick={() => updateOrderStatus(order.id, 'Delivered')}>
                     Order Received
                   </Button>
                 )}
-
-                {/* 4. Delivered: Can Request Refund */}
+                
                 {order.status === 'Delivered' && (
-                  <Button 
-                    variant="outlined" 
-                    color="error" 
-                    size="small" 
-                    startIcon={<RestartAltIcon />} 
-                    // 🚨 IMPORTANT: Sets status to 'Refund Requested' for Admin review
-                    onClick={() => updateOrderStatus(order.id, 'Refund Requested')}
-                  >
+                  <Button variant="outlined" color="error" size="small" startIcon={<RestartAltIcon />} onClick={() => updateOrderStatus(order.id, 'Refund Requested')}>
                     Request Refund
                   </Button>
                 )}
-
-                {/* 5. Pending Review Info */}
+                
                 {order.status === 'Refund Requested' && (
                   <Typography variant="caption" color="secondary.main" sx={{ fontWeight: 'bold', fontStyle: 'italic' }}>
                     Refund under review...
                   </Typography>
                 )}
-
-                {/* 6. Closed States */}
+                
                 {['Cancelled', 'Refunded'].includes(order.status) && (
                   <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
                     No further actions available
                   </Typography>
                 )}
-
               </Box>
             </Paper>
           ))

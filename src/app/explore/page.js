@@ -76,7 +76,7 @@ function ExploreContent() {
       default: break;
     }
     return result;
-  }, [searchQuery, selectedCategory, sortBy, allProducts]); // Add allProducts dependency
+  }, [searchQuery, selectedCategory, sortBy, allProducts]);
 
   const count = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice((page - 1) * itemsPerPage, page * itemsPerPage);

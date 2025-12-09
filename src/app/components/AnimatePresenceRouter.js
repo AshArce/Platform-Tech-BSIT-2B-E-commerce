@@ -18,7 +18,7 @@ export default function AnimatePresenceRouter({ children }) {
     // 2. Turn it off after 3 seconds (3000ms)
     const timer = setTimeout(() => {
         setIsTransitioning(false);
-    }, 3000); // <--- CHANGED TO 3 SECONDS
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [pathname]);

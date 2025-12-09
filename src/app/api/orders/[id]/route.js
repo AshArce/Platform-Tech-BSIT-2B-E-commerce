@@ -1,126 +1,56 @@
-// src/app/api/orders/route.js
+// src/app/api/orders/[id]/route.js
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Order from '@/models/Order';
-import Product from '@/models/Product'; 
 
-// 1. GET: Fetch Orders (Filtered by User or All)
-export async function GET(request) {
+// 1. GET: Fetch a Single Order
+export async function GET(request, { params }) {
   try {
     await connectToDatabase();
     
-    // Check for query params (e.g., /api/orders?userId=123)
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    // 🚨 Next.js 15 Requirement: Await params
+    const { id } = await params;
 
-    let query = {};
-    if (userId) {
-      query = { userId: parseInt(userId) }; 
+    const order = await Order.findOne({ id: id });
+
+    if (!order) {
+      return NextResponse.json({ message: 'Order not found' }, { status: 404 });
     }
-    
-    // Sort by newest first
-    const orders = await Order.find(query).sort({ date: -1 });
-    return NextResponse.json(orders);
+
+    return NextResponse.json(order);
 
   } catch (error) {
-    return NextResponse.json({ message: 'Error fetching orders', error }, { status: 500 });
+    return NextResponse.json({ message: 'Error fetching order', error: error.message }, { status: 500 });
   }
 }
 
-// 2. POST: Create a New Order AND Update Inventory
-export async function POST(request) {
+// 2. PUT: Update Order Status (This is what triggers the 405 if missing)
+export async function PUT(request, { params }) {
   try {
     await connectToDatabase();
-    const body = await request.json();
+    
+    // 🚨 Next.js 15 Requirement: Await params
+    const { id } = await params;
+    
+    // Get the new status from the frontend
+    const { status } = await request.json();
 
-    // --- INVENTORY UPDATE LOGIC ---
-    // Loop through every item in the cart to update the Product database
-    if (body.items && body.items.length > 0) {
-        for (const item of body.items) {
-            // Ensure we have a productId to search with
-            if (item.productId) {
-                await Product.findOneAndUpdate(
-                    { id: item.productId }, 
-                    { 
-                        $inc: { 
-                            stockCount: -item.quantity, // Deduct stock
-                            soldCount: item.quantity    // Increase sales count
-                        } 
-                    }
-                );
-            }
-        }
+    console.log(`Updating Order ${id} to ${status}...`);
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { id: id }, 
+      { status: status }, 
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return NextResponse.json({ message: 'Order not found' }, { status: 404 });
     }
-    // ------------------------------
 
-    // Generate a readable ID (e.g., ORD-8273)
-    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const newOrder = new Order({
-      id: orderId,
-      userId: body.userId,
-      total: body.total,
-      status: 'Cooking', // Default status
-      items: body.items,
-      date: new Date().toLocaleDateString()
-    });
-
-    await newOrder.save();
-
-    return NextResponse.json({ message: 'Order Placed', order: newOrder }, { status: 201 });
+    return NextResponse.json({ message: 'Order Status Updated', order: updatedOrder });
 
   } catch (error) {
-    console.error("Order Creation Error:", error);
-    return NextResponse.json({ message: 'Error creating order', error: error.message }, { status: 500 });
-  }
-}// src/app/api/orders/route.js
-import { NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';
-import Order from '@/models/Order';
-import Product from '@/models/Product'; // 1. Import Product Model
-
-// ... GET function stays the same ...
-
-// 2. POST: Create a New Order AND Update Inventory
-export async function POST(request) {
-  try {
-    await connectToDatabase();
-    const body = await request.json();
-
-    // --- NEW INVENTORY LOGIC ---
-    // Loop through every item in the cart
-    for (const item of body.items) {
-        // Find the product and update it
-        // $inc means "increment" (add). We add -quantity to subtract.
-        await Product.findOneAndUpdate(
-            { id: item.productId }, 
-            { 
-                $inc: { 
-                    stockCount: -item.quantity, // Subtract stock
-                    soldCount: item.quantity    // Add to sold count
-                } 
-            }
-        );
-    }
-    // ---------------------------
-
-    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const newOrder = new Order({
-      id: orderId,
-      userId: body.userId,
-      total: body.total,
-      status: 'Cooking', 
-      items: body.items,
-      date: new Date().toLocaleDateString()
-    });
-
-    await newOrder.save();
-
-    return NextResponse.json({ message: 'Order Placed', order: newOrder }, { status: 201 });
-
-  } catch (error) {
-    console.error("Order Error:", error);
-    return NextResponse.json({ message: 'Error creating order', error: error.message }, { status: 500 });
+    console.error('Update Error:', error);
+    return NextResponse.json({ message: 'Error updating order', error: error.message }, { status: 500 });
   }
 }

@@ -1,8 +1,7 @@
 // src/app/api/seed/route.js
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
-import bcrypt from 'bcryptjs'; // 1. Import bcrypt
-
+import bcrypt from 'bcryptjs';
 // Import Models
 import Product from '@/models/Product';
 import User from '@/models/User';
@@ -11,7 +10,7 @@ import Order from '@/models/Order';
 // Import Source Data
 import { products } from '@/data/products';
 import { users } from '@/data/users';
-// import { orders } from '@/data/orders'; 
+import { orders } from '@/data/orders'; 
 
 export async function GET() {
   try {
@@ -30,7 +29,7 @@ export async function GET() {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       return {
         ...user,
-        password: hashedPassword // Replace plain text with hash
+        password: hashedPassword
       };
     }));
 

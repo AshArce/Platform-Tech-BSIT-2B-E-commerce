@@ -2,38 +2,37 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Button, Grid, Paper, Divider, Checkbox, FormControlLabel } from '@mui/material';
+import { Container, Typography, Box, Button, Grid, Paper, Divider, Checkbox, FormControlLabel, Chip } from '@mui/material';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useCart } from '../context/CartContext';
-import CartItem from '../components/CartItem'; 
+import CartItem from '../components/CartItem';
 import { useRouter } from 'next/navigation';
 
 const CartPage = () => {
   const { cartItems, setCheckoutItems } = useCart();
   const router = useRouter();
   
-  // 1. UPDATED: Track 'cartId' instead of 'id'
+  // Track 'cartId' instead of 'id'
   const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => {
-    // Select all by default on load using cartId
+    // Select all by default on load using cartId if nothing selected yet
     if (cartItems.length > 0 && selectedIds.length === 0) {
-        setSelectedIds(cartItems.map(item => item.cartId)); // 🚨 FIX
+        setSelectedIds(cartItems.map(item => item.cartId));
     }
   }, [cartItems]);
 
-  const handleToggleItem = (cartId) => { // 🚨 FIX: Expect cartId
+  const handleToggleItem = (cartId) => { 
     if (selectedIds.includes(cartId)) setSelectedIds(selectedIds.filter(id => id !== cartId));
     else setSelectedIds([...selectedIds, cartId]);
   };
 
   const handleSelectAll = (event) => {
-    if (event.target.checked) setSelectedIds(cartItems.map(item => item.cartId)); // 🚨 FIX
+    if (event.target.checked) setSelectedIds(cartItems.map(item => item.cartId));
     else setSelectedIds([]);
   };
 
-  // 2. UPDATED: Filter using cartId
   const selectedItemsList = cartItems.filter(item => selectedIds.includes(item.cartId));
   
   const subtotal = selectedItemsList.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -70,7 +69,7 @@ const CartPage = () => {
         </Typography>
         
         <Grid container spacing={4}>
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid item xs={12} md={8}>
             <Paper sx={{ p: 2, mb: 2, display: 'flex', alignItems: 'center' }}>
               <FormControlLabel
                 control={<Checkbox checked={selectedIds.length === cartItems.length && cartItems.length > 0} onChange={handleSelectAll} />}
@@ -80,16 +79,16 @@ const CartPage = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {cartItems.map((item) => (
                 <CartItem 
-                  key={item.cartId} // 🚨 FIX: Use cartId as key
+                  key={item.cartId} 
                   item={item} 
-                  isSelected={selectedIds.includes(item.cartId)} // 🚨 FIX: Check cartId
+                  isSelected={selectedIds.includes(item.cartId)} 
                   onToggle={handleToggleItem} 
                 />
               ))}
             </Box>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid item xs={12} md={4}>
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, position: 'sticky', top: 100, border: '1px solid #eee', display: { xs: 'none', md: 'block' } }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Order Summary</Typography>
               <Box sx={{ my: 2 }}>
@@ -106,6 +105,7 @@ const CartPage = () => {
         </Grid>
       </Container>
 
+      {/* Mobile Sticky Checkout */}
       <Paper elevation={10} sx={{ position: 'fixed', bottom: 70, left: 0, right: 0, p: 2, bgcolor: 'white', borderTopLeftRadius: 16, borderTopRightRadius: 16, display: { xs: 'block', md: 'none' }, zIndex: 999 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box><Typography variant="body2" color="text.secondary">Total ({selectedIds.length} items)</Typography><Typography variant="h5" fontWeight="bold">₱{finalTotal}</Typography></Box>

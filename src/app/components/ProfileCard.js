@@ -5,7 +5,7 @@ import React from 'react';
 import { Card, CardContent, Typography, Avatar, Box, Divider, Button } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import EventNoteIcon from '@mui/icons-material/EventNote';
-import LogoutIcon from '@mui/icons-material/Logout'; // Import Icon
+import LogoutIcon from '@mui/icons-material/Logout';
 
 // 1. Import Auth Hooks needed for logout logic
 import { useAuth } from '../context/AuthContext';

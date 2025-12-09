@@ -4,14 +4,10 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-
-// MUI Components (Imports remain the same)
 import { 
   AppBar, Toolbar, IconButton, Badge, Typography, Drawer, Box, List, ListItem, 
   ListItemButton, ListItemIcon, ListItemText, Divider, Avatar, Tooltip, useMediaQuery, useTheme 
 } from '@mui/material';
-
-// MUI Icons (Imports remain the same)
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ExploreIcon from '@mui/icons-material/Explore';
@@ -29,7 +25,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useColorMode } from '../context/ThemeContext';
 
-// --- Internal Sidebar Component (MODIFIED) ---
+// --- Internal Sidebar Component ---
 const SidebarMenu = ({ user, isOpen, onClose, onLogout, onDrawerMouseEnter, onDrawerMouseLeave }) => {
   const router = useRouter(); // Use useRouter inside SidebarMenu
   
@@ -37,7 +33,7 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout, onDrawerMouseEnter, onDr
   const handleNavigation = (href) => {
     onClose(); // Close the drawer immediately (MUI animation starts)
     
-    // FIX: Delay navigation slightly to allow the main page transition to fire
+    // Delay navigation slightly to allow the main page transition to fire
     setTimeout(() => {
         router.push(href);
     }, 250); // Delay should match or slightly exceed the PageTransition duration (0.3s)
@@ -82,7 +78,6 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout, onDrawerMouseEnter, onDr
           {navItems.map((item) => (
             <ListItem key={item.name} disablePadding>
               <ListItemButton 
-                  // REMOVED component="a" and href 
                   onClick={() => handleNavigation(item.href)}
               >
                 <ListItemIcon sx={{ color: 'text.secondary' }}>{item.icon}</ListItemIcon>
@@ -96,7 +91,6 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout, onDrawerMouseEnter, onDr
           {utilityItems.map((item) => (
             <ListItem key={item.name} disablePadding>
               <ListItemButton 
-                  // REMOVED component="a" and href 
                   onClick={() => handleNavigation(item.href)}
               >
                 <ListItemIcon sx={{ color: 'text.secondary' }}>{item.icon}</ListItemIcon>
@@ -116,7 +110,7 @@ const SidebarMenu = ({ user, isOpen, onClose, onLogout, onDrawerMouseEnter, onDr
   );
 };
 
-// --- Main TopNav Component (No changes needed here) ---
+// --- Main TopNav Component ---
 const TopNav = () => {
   const { cartCount } = useCart();
   const { currentUser, logout } = useAuth(); 
@@ -147,7 +141,7 @@ const TopNav = () => {
     setIsDrawerOpen(prev => !prev);
   };
 
-  // Hover handlers for Desktop (No changes needed)
+  // Hover handlers for Desktop
   const handleMouseEnter = () => {
     if (!isMobile) {
       if (closeTimeoutRef.current) {

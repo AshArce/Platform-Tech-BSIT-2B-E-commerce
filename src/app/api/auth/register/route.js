@@ -28,7 +28,7 @@ export async function POST(request) {
     const newUser = new User({
       id: Date.now(),
       name: fullName,
-      username: username, // Use the manual input
+      username: username, 
       email,
       phone,
       password: hashedPassword,

@@ -30,6 +30,7 @@ export default function ProductModal({ open, onClose, product }) {
     if (product) {
       setQuantity(1);
       setOptions({ utensils: false, straw: false, hotSauce: false });
+      // Default to 'Small' or first available size
       setSelectedSize(product.size && product.size.length > 0 ? product.size[0] : '');
     }
   }, [product]);
@@ -43,12 +44,28 @@ export default function ProductModal({ open, onClose, product }) {
   const isDessert = product.category === 'Dessert';
   const hasSizes = product.size && product.size.length > 0;
 
+  // 💲 2. PRICE CALCULATION LOGIC
+  const getAdjustedPrice = () => {
+    let price = product.price;
+
+    // Apply markup based on size
+    if (selectedSize === 'Medium') {
+        price = price * 1.2;
+    } else if (selectedSize === 'Large') {
+        price = price * 1.4;
+    }
+
+    return price;
+  };
+
+  const finalPrice = getAdjustedPrice();
+
   const handleOptionChange = (name) => {
     setOptions(prev => ({ ...prev, [name]: !prev[name] }));
   };
 
   const handleAddToCart = () => {
-    if (isOutOfStock) return; // Guard clause
+    if (isOutOfStock) return; 
 
     const optionString = `${selectedSize}-${options.utensils ? 'u' : ''}-${options.straw ? 's' : ''}-${options.hotSauce ? 'h' : ''}`;
     const cartId = `${product.id}-${optionString}`;
@@ -58,6 +75,7 @@ export default function ProductModal({ open, onClose, product }) {
       cartId, 
       quantity,
       selectedSize, 
+      price: finalPrice,
       selectedOptions: options
     };
 
@@ -82,12 +100,10 @@ export default function ProductModal({ open, onClose, product }) {
             width: '100%', 
             height: '100%', 
             objectFit: 'cover',
-            // Gray out if sold out
             filter: isOutOfStock ? 'grayscale(100%)' : 'none' 
           }}
         />
         
-        {/* SOLD OUT OVERLAY */}
         {isOutOfStock && (
             <Box sx={{
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -111,7 +127,6 @@ export default function ProductModal({ open, onClose, product }) {
         <Box display="flex" justifyContent="space-between" alignItems="start">
             <Box>
                 <Typography variant="h5" fontWeight="bold" gutterBottom>{product.name}</Typography>
-                {/* Stock Indicator */}
                 <Chip 
                     label={isOutOfStock ? "Out of Stock" : `${product.stockCount} available`} 
                     color={isOutOfStock ? "default" : "success"} 
@@ -119,7 +134,11 @@ export default function ProductModal({ open, onClose, product }) {
                     sx={{ mb: 1 }}
                 />
             </Box>
-            <Typography variant="h6" color="primary.main" fontWeight="bold">₱{product.price.toFixed(2)}</Typography>
+            
+            {/* Display the calculated price dynamically */}
+            <Typography variant="h6" color="primary.main" fontWeight="bold">
+                ₱{finalPrice.toFixed(2)}
+            </Typography>
         </Box>
 
         <Typography variant="body2" color="text.secondary" paragraph>{product.description}</Typography>
@@ -157,13 +176,11 @@ export default function ProductModal({ open, onClose, product }) {
 
         {/* 3. QUANTITY & ADD BUTTON */}
         <Box display="flex" alignItems="center" justifyContent="space-between" mt={4}>
-          {/* Quantity Stepper */}
           <Box display="flex" alignItems="center" border="1px solid #ddd" borderRadius={2} sx={{ opacity: isOutOfStock ? 0.5 : 1 }}>
             <IconButton onClick={() => setQuantity(Math.max(1, quantity - 1))} size="small" disabled={isOutOfStock}>
               <RemoveIcon fontSize="small" />
             </IconButton>
             <Typography sx={{ mx: 2, fontWeight: 'bold' }}>{quantity}</Typography>
-            {/* Logic: Don't allow quantity > stockCount */}
             <IconButton 
                 onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))} 
                 size="small"
@@ -173,7 +190,6 @@ export default function ProductModal({ open, onClose, product }) {
             </IconButton>
           </Box>
 
-          {/* Add Button */}
           <Button 
             variant="contained" 
             size="large" 
@@ -182,7 +198,7 @@ export default function ProductModal({ open, onClose, product }) {
             startIcon={isOutOfStock ? <BlockIcon /> : <ShoppingCartIcon />}
             sx={{ borderRadius: 3, px: 4, fontWeight: 'bold', bgcolor: isOutOfStock ? 'action.disabled' : 'primary.main' }}
           >
-            {isOutOfStock ? 'Unavailable' : `Add - ₱${(product.price * quantity).toFixed(2)}`}
+            {isOutOfStock ? 'Unavailable' : `Add - ₱${(finalPrice * quantity).toFixed(2)}`}
           </Button>
         </Box>
 

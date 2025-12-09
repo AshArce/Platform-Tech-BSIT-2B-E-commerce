@@ -6,7 +6,7 @@ import { Container, Typography, Box, Button, TextField, Paper, Grid } from '@mui
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useCart } from '../../context/CartContext';
-import { useProducts } from '../../context/ProductContext'; // 1. Import Context
+import { useProducts } from '../../context/ProductContext';
 
 export default function ProductDetailPage({ params }) { 
   const unwrappedParams = use(params);

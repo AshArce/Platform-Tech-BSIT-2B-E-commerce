@@ -60,11 +60,10 @@ export default function TermsDialog({ open, onClose }) {
         <Dialog open={open} onClose={onClose} fullScreen>
             <AppBar sx={{ position: 'relative' }}>
                 <Toolbar>
-                    {/* REMOVED: Close button (X) */}
+                
                     <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
                         Terms of Service
                     </Typography>
-                    {/* ADDED: Spacer Box to force Title left */}
                     <Box sx={{ width: 48 }} /> 
                 </Toolbar>
             </AppBar>
@@ -77,10 +76,8 @@ export default function TermsDialog({ open, onClose }) {
                         
                         {/* 3. MAIN CONTENT - Set large variant, use sx for internal padding */}
                         <Typography 
-                            variant="subtitle1" // Retaining subtitle1 as requested large size
+                            variant="subtitle1" 
                             component="pre" 
-                            // Add small horizontal padding (px: 2, which is 16px) 
-                            // directly to the Typography block for minimal margin.
                             sx={{ px: 2, py: 1 }} 
                             style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}
                         >

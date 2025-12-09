@@ -34,7 +34,6 @@ export default function AuthGuard({ children }) {
         }
 
         // SCENARIO B: Admin tries to access Customer Pages (Home, Cart, etc) -> Kick to Admin Dashboard
-        // (Remove this block if you want Admins to be able to see the shop too)
         if (isAdmin && !tryingToAccessAdmin) {
             router.push('/admin');
         }

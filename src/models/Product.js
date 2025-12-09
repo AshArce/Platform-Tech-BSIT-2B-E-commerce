@@ -12,7 +12,7 @@ const ProductSchema = new mongoose.Schema({
   stockCount: { type: Number, default: 50 },
   soldCount: { type: Number, default: 0 },
   
-  // ⏱️ NEW TIMING ATTRIBUTES (in Seconds)
+  // TIMING ATTRIBUTES (in Seconds)
   cookingTime: { type: Number, default: 5 },   // Default 5 seconds
   deliveryTime: { type: Number, default: 15 }, // Default 15 seconds
 

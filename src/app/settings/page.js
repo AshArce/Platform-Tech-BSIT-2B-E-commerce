@@ -2,16 +2,15 @@
 'use client';
 
 import React, { useState } from 'react';
-// 1. ADD MISSING IMPORTS
 import { useRouter } from 'next/navigation'; 
 import { 
   Box, Container, Typography, Paper, List, ListItem, ListItemText, 
   ListItemIcon, ListItemSecondaryAction, Switch, Divider, Button, 
-  ListItemButton, Avatar, // Added Avatar
+  ListItemButton, Avatar,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField,
 } from '@mui/material';
 
-// 2. IMPORT THE ICONS YOU USED
+// 2. IMPORT THE ICONS USED
 import SaveIcon from '@mui/icons-material/Save';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import NotificationsIcon from '@mui/icons-material/Notifications';

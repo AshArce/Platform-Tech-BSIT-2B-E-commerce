@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Container, Typography, Box, Button, Grid, Paper, Divider, 
-  Radio, RadioGroup, FormControlLabel, TextField 
+  Radio, RadioGroup, FormControlLabel, TextField, Chip 
 } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -21,15 +21,14 @@ export default function PaymentPage() {
   
   const [paymentMethod, setPaymentMethod] = useState('cash');
   
-  // 1. NEW STATE: Track if we successfully placed an order
+  // Track if we successfully placed an order
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   
   const subtotal = checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const deliveryFee = 5.00;
   const finalTotal = (subtotal + deliveryFee).toFixed(2);
 
-  // 2. UPDATED REDIRECT LOGIC
-  // Only redirect to cart if items are empty AND we haven't just placed an order.
+  // Redirect Logic
   useEffect(() => {
     if (!isOrderPlaced && checkoutItems.length === 0) {
       router.push('/cart');
@@ -37,20 +36,21 @@ export default function PaymentPage() {
   }, [checkoutItems, router, isOrderPlaced]);
 
   const handlePlaceOrder = () => {
-    // 3. Set the flag to TRUE immediately
-    // This stops the useEffect above from kicking you back to the cart
+    if (!currentUser) {
+        alert("Please log in to place an order.");
+        return;
+    }
+
     setIsOrderPlaced(true);
 
     const paidItemIds = checkoutItems.map(item => item.cartId);
-    const userId = currentUser ? currentUser.id : 0;
+    const userId = currentUser.id;
 
     processOrder(paidItemIds, finalTotal, userId);
     
-    // 4. NOW the redirect to Orders will work
     router.push('/orders');
   };
 
-  // Prevent flash of empty content (unless success)
   if (!isOrderPlaced && checkoutItems.length === 0) return null; 
 
   return (
@@ -63,7 +63,7 @@ export default function PaymentPage() {
         <Grid container spacing={3}>
           
           {/* LEFT COLUMN: Details */}
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid item xs={12} md={8}>
             
             {/* Delivery Address */}
             <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
@@ -97,21 +97,29 @@ export default function PaymentPage() {
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="h6" fontWeight="bold" mb={2}>Items ({checkoutItems.length})</Typography>
               {checkoutItems.map((item) => (
-                <Box key={item.cartId} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                  <Box>
-                    <Typography variant="body2" fontWeight="bold">{item.quantity}x {item.name}</Typography>
-                    {item.selectedSize && (
-                        <Typography variant="caption" color="text.secondary">Size: {item.selectedSize}</Typography>
-                    )}
-                  </Box>
-                  <Typography variant="body2" fontWeight="bold">₱{(item.price * item.quantity).toFixed(2)}</Typography>
+                <Box key={item.cartId} mb={2}>
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                        <Box>
+                            <Typography variant="body2" fontWeight="bold">{item.quantity}x {item.name}</Typography>
+                            
+                            {/* 🆕 SHOW SIZE & OPTIONS */}
+                            <Box display="flex" flexWrap="wrap" gap={0.5} mt={0.5}>
+                                {item.selectedSize && <Chip label={item.selectedSize} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem' }} />}
+                                {item.selectedOptions?.utensils && <Typography variant="caption" color="text.secondary">+ Utensils</Typography>}
+                                {item.selectedOptions?.straw && <Typography variant="caption" color="text.secondary">, + Straw</Typography>}
+                                {item.selectedOptions?.hotSauce && <Typography variant="caption" color="text.secondary">, + Hot Sauce</Typography>}
+                            </Box>
+                        </Box>
+                        <Typography variant="body2" fontWeight="bold">₱{(item.price * item.quantity).toFixed(2)}</Typography>
+                    </Box>
+                    <Divider sx={{ my: 1, borderStyle: 'dashed' }} />
                 </Box>
               ))}
             </Paper>
           </Grid>
 
           {/* RIGHT COLUMN: Payment Summary */}
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid item xs={12} md={4}>
             <Paper elevation={3} sx={{ p: 3, borderRadius: 3, position: 'sticky', top: 100 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Payment Summary</Typography>
               <Divider sx={{ my: 2 }} />
@@ -147,4 +155,4 @@ export default function PaymentPage() {
       </Container>
     </Box>
   );
-} 
+}

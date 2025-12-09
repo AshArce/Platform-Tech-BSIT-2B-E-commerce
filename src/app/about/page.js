@@ -70,28 +70,24 @@ export default function AboutPage() {
       name: 'John Ashley Arcebuche', 
       role: 'Founder / Developer', 
       img: '../image/Teams/ash.png',
-      // TODO: PASTE PATH TO JOHN'S FUNNY IMAGE BELOW
       easterEggImg: '../image/Teams/ash_funny.png' 
     },
     { 
       name: 'Riddik De Leon', 
       role: 'Member / Fishball Vendor', 
       img: '../image/Teams/riddik.png',
-      // TODO: PASTE PATH TO RIDDIK'S FUNNY IMAGE BELOW
       easterEggImg: '../image/Teams/riddik_funny.png' 
     },
     { 
       name: 'Marco Jay V Reyes', 
       role: 'Member / Designer', 
       img: '../image/Teams/marco.png',
-      // TODO: PASTE PATH TO MARCO'S FUNNY IMAGE BELOW
       easterEggImg: '../image/Teams/marco_funny.png' 
     },
     { 
       name: 'Casely Aguilar', 
       role: 'Member / Designer', 
       img: '../image/Teams/case.png',
-      // TODO: PASTE PATH TO CASELY'S FUNNY IMAGE BELOW
       easterEggImg: '../image/Teams/case_funny.png' 
     },
   ];
@@ -115,7 +111,7 @@ export default function AboutPage() {
             variant="h2" 
             component="h1" 
             sx={{ 
-              fontWeight: 800, // Stay black even in dark mode
+              fontWeight: 800,
               mb: 3,
               fontSize: { xs: '2.5rem', md: '3.5rem' },
             }}

@@ -4,7 +4,7 @@
 import React from 'react';
 import { Card, CardActions, CardContent, CardMedia, Button, Typography, Box, CardActionArea, Chip } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import BlockIcon from '@mui/icons-material/Block'; // Icon for out of stock
+import BlockIcon from '@mui/icons-material/Block';
 
 const ProductCard = ({ product, onProductClick }) => {
   const { name, price, description, imageUrl, stockCount } = product;

@@ -1,7 +1,7 @@
 // src/app/api/products/route.js
 import { NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';      // <--- Uses @ to find lib
-import Product from '@/models/Product';        // <--- Uses @ to find models
+import connectToDatabase from '@/lib/db'; 
+import Product from '@/models/Product';       
 
 // 1. GET: Fetch ALL products
 export async function GET() {

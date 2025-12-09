@@ -2,23 +2,21 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Order from '@/models/Order';
-import Product from '@/models/Product'; // 1. Import Product Model to manage inventory
+import Product from '@/models/Product';
 
-// 1. GET: Fetch Orders (Filtered by User or All)
+// 1. GET: Fetch Orders
 export async function GET(request) {
   try {
     await connectToDatabase();
     
-    // Check for query params (e.g., /api/orders?userId=123)
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
     let query = {};
     if (userId) {
-      query = { userId: parseInt(userId) }; // Filter by user if ID provided
+      query = { userId: parseInt(userId) };
     }
     
-    // Sort by newest first
     const orders = await Order.find(query).sort({ date: -1 });
     return NextResponse.json(orders);
 
@@ -27,40 +25,36 @@ export async function GET(request) {
   }
 }
 
-// 2. POST: Create a New Order AND Update Inventory
+// 2. POST: Create Order and Deduct Stock
 export async function POST(request) {
   try {
     await connectToDatabase();
     const body = await request.json();
 
-    // --- INVENTORY UPDATE LOGIC ---
-    // Loop through every item in the cart to update the Product database
+    // Loop through items to update stock
     if (body.items && body.items.length > 0) {
         for (const item of body.items) {
-            // Ensure we have a productId to search with
             if (item.productId) {
                 await Product.findOneAndUpdate(
                     { id: item.productId }, 
                     { 
                         $inc: { 
-                            stockCount: -item.quantity, // Deduct stock
-                            soldCount: item.quantity    // Increase sales count
+                            stockCount: -item.quantity, 
+                            soldCount: item.quantity
                         } 
                     }
                 );
             }
         }
     }
-    // ------------------------------
 
-    // Generate a readable ID (e.g., ORD-8273)
     const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const newOrder = new Order({
       id: orderId,
       userId: body.userId,
       total: body.total,
-      status: 'Cooking', // Default status
+      status: 'Cooking',
       items: body.items,
       date: new Date().toLocaleDateString()
     });

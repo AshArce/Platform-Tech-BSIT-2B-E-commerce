@@ -14,7 +14,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock'; 
 import PersonIcon from '@mui/icons-material/Person'; 
 import PhoneIcon from '@mui/icons-material/Phone'; 
-import BadgeIcon from '@mui/icons-material/Badge'; // New Icon for Username
+import BadgeIcon from '@mui/icons-material/Badge';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -32,7 +32,7 @@ const LoginPage = () => {
   // 1. ADD USERNAME TO STATE
   const [formData, setFormData] = useState({
     fullName: '',
-    username: '', // New Field
+    username: '',
     email: '', 
     phone: '',
     password: '',
@@ -95,7 +95,7 @@ const LoginPage = () => {
         return "Password must be at least 8 chars (1 Upper, 1 Lower, 1 Number, 1 Special Char).";
     }
 
-    return null; // Passed
+    return null;
   };
 
   const handleSubmit = async (e) => {

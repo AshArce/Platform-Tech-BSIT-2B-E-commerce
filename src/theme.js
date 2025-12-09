@@ -8,7 +8,6 @@ const roboto = Roboto({
   display: 'swap',
 });
 
-// We export a FUNCTION now, not a static object
 export const getTheme = (mode) => createTheme({
   palette: {
     mode, // 'light' or 'dark'
@@ -22,9 +21,9 @@ export const getTheme = (mode) => createTheme({
         }
       : {
           // DARK MODE COLORS
-          primary: { main: '#90caf9' }, // Lighter blue for dark backgrounds
+          primary: { main: '#90caf9' },
           secondary: { main: '#ffb74d' },
-          background: { default: '#121212', paper: '#1e1e1e' }, // Standard Dark Mode Greys
+          background: { default: '#121212', paper: '#1e1e1e' },
           text: { primary: '#ffffff', secondary: '#aaaaaa' },
         }),
   },

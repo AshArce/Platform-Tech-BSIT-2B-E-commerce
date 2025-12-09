@@ -11,14 +11,11 @@ export const ProductProvider = ({ children }) => {
   const [allProducts, setAllProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. FETCH from API on Load
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
+  // 1. FETCH from API (Now reusable)
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products');
+      // Add timestamp to prevent caching old stock numbers
+      const res = await fetch(`/api/products?t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         setAllProducts(data);
@@ -30,6 +27,11 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  // Initial load
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   // 2. ADD Product (API)
   const addProduct = async (newProduct) => {
     try {
@@ -40,8 +42,7 @@ export const ProductProvider = ({ children }) => {
       });
       
       if (res.ok) {
-        const { product } = await res.json();
-        setAllProducts((prev) => [product, ...prev]); // Update UI immediately
+        fetchProducts(); // Refresh list from server to be safe
       }
     } catch (error) {
       console.error('Failed to add product:', error);
@@ -58,9 +59,7 @@ export const ProductProvider = ({ children }) => {
       });
 
       if (res.ok) {
-        setAllProducts((prev) => 
-          prev.map((p) => p.id === updatedProduct.id ? updatedProduct : p)
-        );
+        fetchProducts(); // Refresh list to get exact server state
       }
     } catch (error) {
       console.error('Failed to update product:', error);
@@ -75,7 +74,7 @@ export const ProductProvider = ({ children }) => {
       });
 
       if (res.ok) {
-        setAllProducts((prev) => prev.filter((p) => p.id !== id));
+        fetchProducts(); // Refresh list
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
@@ -83,7 +82,14 @@ export const ProductProvider = ({ children }) => {
   };
 
   return (
-    <ProductContext.Provider value={{ allProducts, isLoading, addProduct, updateProduct, deleteProduct }}>
+    <ProductContext.Provider value={{ 
+        allProducts, 
+        isLoading, 
+        fetchProducts,
+        addProduct, 
+        updateProduct, 
+        deleteProduct 
+    }}>
       {children}
     </ProductContext.Provider>
   );
