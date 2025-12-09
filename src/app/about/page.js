@@ -1,3 +1,4 @@
+// about/page.js
 'use client';
 import React, { useState } from 'react';
 import { 
@@ -20,8 +21,8 @@ import {
   TextField,         
   IconButton,
   MenuItem,
-  Snackbar, // Added for success message
-  Alert     // Added for styling the success message
+  Snackbar, 
+  Alert     
 } from '@mui/material';
 import { 
   ElectricBike, 
@@ -34,31 +35,25 @@ import {
 
 export default function AboutPage() {
   const theme = useTheme();
+  const isDarkTrigger = theme.palette.mode === 'dark';
 
   // ==========================================
   // STATE MANAGEMENT
   // ==========================================
   
-  // 1. RIDER FORM STATE
   const [openRiderForm, setOpenRiderForm] = useState(false);
   const handleOpenRider = () => setOpenRiderForm(true);
   const handleCloseRider = () => setOpenRiderForm(false);
 
-  // 2. PARTNER FORM STATE
   const [openPartnerForm, setOpenPartnerForm] = useState(false);
   const handleOpenPartner = () => setOpenPartnerForm(true);
   const handleClosePartner = () => setOpenPartnerForm(false);
 
-  // 3. SUCCESS MESSAGE STATE (SNACKBAR)
   const [openSuccess, setOpenSuccess] = useState(false);
 
-  // Function to handle "Submit" actions
   const handleSubmit = (type) => {
-    // 1. Close the specific form
     if (type === 'rider') setOpenRiderForm(false);
     if (type === 'partner') setOpenPartnerForm(false);
-    
-    // 2. Open the success message
     setOpenSuccess(true);
   };
 
@@ -67,41 +62,52 @@ export default function AboutPage() {
     setOpenSuccess(false);
   };
 
-  // DATA ARRAY
+  // ==========================================
+  // TEAM DATA
+  // ==========================================
   const teamMembers = [
     { 
       name: 'John Ashley Arcebuche', 
       role: 'Founder / Developer', 
-      img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&q=80' 
+      img: '../image/Teams/ash.png',
+      // TODO: PASTE PATH TO JOHN'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/ash_funny.png' 
     },
     { 
       name: 'Riddik De Leon', 
       role: 'Member / Fishball Vendor', 
-      img: '../image/Teams/riddik.jpg' 
+      img: '../image/Teams/riddik.png',
+      // TODO: PASTE PATH TO RIDDIK'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/riddik_funny.png' 
     },
     { 
       name: 'Marco Jay V Reyes', 
       role: 'Member / Designer', 
-      img: '../image/Teams/marco.jpg' 
+      img: '../image/Teams/marco.png',
+      // TODO: PASTE PATH TO MARCO'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/marco_funny.png' 
     },
     { 
       name: 'Casely Aguilar', 
       role: 'Member / Designer', 
-      img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' 
+      img: '../image/Teams/case.png',
+      // TODO: PASTE PATH TO CASELY'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/case_funny.png' 
     },
   ];
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
+    <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', pb: 10 }}>
       
       {/* 1. HERO SECTION */}
       <Box 
         sx={{ 
-          bgcolor: 'white', 
+          bgcolor: '#ffffff',
           pt: { xs: 8, md: 12 }, 
           pb: { xs: 12, md: 14 },
           textAlign: 'center',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          color: '#000000' 
         }}
       >
         <Container maxWidth="md">
@@ -109,10 +115,9 @@ export default function AboutPage() {
             variant="h2" 
             component="h1" 
             sx={{ 
-              fontWeight: 800, 
-              color: 'text.primary',
+              fontWeight: 800, // Stay black even in dark mode
               mb: 3,
-              fontSize: { xs: '2.5rem', md: '3.5rem' } 
+              fontSize: { xs: '2.5rem', md: '3.5rem' },
             }}
           >
             Delivering Delicious and Fast.
@@ -120,7 +125,7 @@ export default function AboutPage() {
           <Typography 
             variant="h6" 
             sx={{ 
-              color: 'text.secondary', 
+              color: 'text.secondary',
               maxWidth: '800px', 
               mx: 'auto', 
               lineHeight: 1.6,
@@ -150,8 +155,8 @@ export default function AboutPage() {
         <Grid container spacing={2} justifyContent="center">
           {[
             { label: 'Eco-Friendly Fleet', icon: <ElectricBike fontSize="large"/>, text: '100% Electric bikes for a greener future.' },
-            { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
             { label: 'Happy Customers', icon: <EmojiEmotions fontSize="large"/>, text: 'Delivering smiles with every order.' },
+            { label: 'Local Partners', icon: <Storefront fontSize="large"/>, text: 'Supporting local businesses and vendors.' },
           ].map((item, index) => (
             <Grid item xs={12} md={4} key={index}>
               <Card 
@@ -163,9 +168,8 @@ export default function AboutPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  borderRadius: 4,
-                  boxShadow: '0px 10px 30px rgba(0,0,0,0.08)',
-                  transition: 'transform 0.3s ease-in-out',
+                  bgcolor: '#ffffff',
+                  color: '#000000',
                   '&:hover': { transform: 'translateY(-8px)' }
                 }}
               >
@@ -184,7 +188,7 @@ export default function AboutPage() {
                 >
                   {item.icon}
                 </Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#000000' }}>
                   {item.label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -199,13 +203,25 @@ export default function AboutPage() {
       {/* ========================================================= */}
       {/* 3 & 4. JOIN THE MOVEMENT SECTION                          */}
       {/* ========================================================= */}
-      <Box sx={{ bgcolor: 'grey.50', py: { xs: 6, md: 10 }, mb: 12 }}>
+      <Box sx={{ 
+          bgcolor: '#fafafa',
+          py: { xs: 6, md: 10 }, 
+          mb: 12 
+      }}>
         <Container maxWidth="lg">
             <Box sx={{ textAlign: 'center', mb: 8 }}>
                 <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 'bold', letterSpacing: 1.5 }}>
                     BE PART OF THE CHANGE
                 </Typography>
-                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, fontSize: { xs: '2rem', md: '3rem'} }}>
+                <Typography 
+                    variant="h3" 
+                    fontWeight={800} 
+                    sx={{ 
+                        mt: 1, 
+                        fontSize: { xs: '2rem', md: '3rem'},
+                        color: '#000000'
+                    }}
+                >
                     Join the Movement
                 </Typography>
             </Box>
@@ -222,6 +238,7 @@ export default function AboutPage() {
                             height: '100%', 
                             border: '1px solid',
                             borderColor: 'grey.200',
+                            bgcolor: '#ffffff',
                             display: 'flex', 
                             flexDirection: 'column',
                             transition: 'all 0.3s',
@@ -232,10 +249,10 @@ export default function AboutPage() {
                             <Box sx={{ p: 1.5, bgcolor: 'grey.900', color: 'white', borderRadius: 3, mr: 2 }}>
                                 <ElectricBike />
                             </Box>
-                            <Typography variant="h5" fontWeight={800}>For Riders</Typography>
+                            <Typography variant="h5" fontWeight={800} color="text.primary">For Riders</Typography>
                         </Box>
                         
-                        <Typography variant="h4" fontWeight={900} gutterBottom>
+                        <Typography variant="h4" fontWeight={900} gutterBottom color="text.primary">
                             Ride with pride.
                         </Typography>
                         
@@ -248,7 +265,7 @@ export default function AboutPage() {
                             {['Flexible Schedule', 'Weekly Earnings', 'Eco-friendly Bike Provided'].map((feat) => (
                                 <Box key={feat} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                     <CheckCircleOutline sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
-                                    <Typography variant="body2" fontWeight={500}>{feat}</Typography>
+                                    <Typography variant="body2" fontWeight={500} color="text.primary">{feat}</Typography>
                                 </Box>
                             ))}
                         </Box>
@@ -259,7 +276,7 @@ export default function AboutPage() {
                             size="large" 
                             endIcon={<ArrowForward />}
                             sx={{ 
-                                bgcolor: 'grey.900', 
+                                bgcolor: 'grey.900',
                                 color: 'white', 
                                 py: 1.5,
                                 borderRadius: 3,
@@ -282,6 +299,7 @@ export default function AboutPage() {
                             height: '100%', 
                             border: '1px solid',
                             borderColor: 'grey.200',
+                            bgcolor: '#ffffff',
                             display: 'flex', 
                             flexDirection: 'column',
                             transition: 'all 0.3s',
@@ -292,10 +310,10 @@ export default function AboutPage() {
                             <Box sx={{ p: 1.5, bgcolor: 'primary.main', color: 'white', borderRadius: 3, mr: 2 }}>
                                 <Storefront />
                             </Box>
-                            <Typography variant="h5" fontWeight={800}>For Businesses</Typography>
+                            <Typography variant="h5" fontWeight={800} color="text.primary">For Businesses</Typography>
                         </Box>
 
-                        <Typography variant="h4" fontWeight={900} gutterBottom>
+                        <Typography variant="h4" fontWeight={900} gutterBottom color="text.primary">
                             Partner with us.
                         </Typography>
 
@@ -308,7 +326,7 @@ export default function AboutPage() {
                             {['Reach New Customers', 'Zero Commission for 1st Month', 'Real-time Tracking'].map((feat) => (
                                 <Box key={feat} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                     <CheckCircleOutline sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
-                                    <Typography variant="body2" fontWeight={500}>{feat}</Typography>
+                                    <Typography variant="body2" fontWeight={500} color="text.primary">{feat}</Typography>
                                 </Box>
                             ))}
                         </Box>
@@ -330,7 +348,7 @@ export default function AboutPage() {
       </Box>
 
       {/* ============================================== */}
-      {/* 4.5 TEAM SECTION                               */}
+      {/* 4.5 TEAM SECTION (THE EASTER EGG IS HERE)      */}
       {/* ============================================== */}
       <Container maxWidth="lg" sx={{ mb: { xs: 8, md: 12 } }}>
         <Typography 
@@ -339,7 +357,7 @@ export default function AboutPage() {
                 textAlign: 'center', 
                 fontWeight: 800, 
                 mb: { xs: 4, md: 6 }, 
-                color: 'text.primary',
+                color: '#000000',
                 fontSize: { xs: '2rem', md: '3rem' }
             }}
         >
@@ -352,7 +370,8 @@ export default function AboutPage() {
               <Box sx={{ textAlign: 'center' }}>
                 <Box 
                   component="img"
-                  src={member.img} 
+                  src={isDarkTrigger ? member.easterEggImg : member.img} 
+                  
                   alt={member.name}
                   sx={{ 
                     width: { xs: 120, sm: 160, md: 200 }, 
@@ -361,16 +380,20 @@ export default function AboutPage() {
                     objectFit: 'cover', 
                     mb: 2, 
                     boxShadow: 3,
-                    border: '4px solid white' 
+                    border: '4px solid',
+                    borderColor: '#ffffff',
+                    transition: 'src 0.3s ease-in-out'
                   }}
                 />
                 <Typography 
                     variant="h6" 
                     fontWeight="bold"
+                    color="text.primary"
                     sx={{ 
                         fontSize: { xs: '1rem', md: '1.25rem' }, 
                         lineHeight: 1.2,
-                        mb: 0.5
+                        mb: 0.5,
+                        color: '#000000'
                     }}
                 >
                   {member.name}
@@ -390,9 +413,12 @@ export default function AboutPage() {
       </Container>
 
       {/* 5. JOIN US CARDS (Big CTA) */}
-      <Box sx={{ bgcolor: 'white', py: 10 }}>
+      <Box sx={{ 
+          bgcolor: '#ffffff',
+          py: 10 
+      }}>
         <Container maxWidth="lg">
-          <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 800, mb: 6, color: 'text.primary' }}>
+          <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 800, mb: 6, color: '#000000' }}>
             Ready to get started?
           </Typography>
           <Grid container spacing={4} justifyContent="center">
@@ -421,6 +447,7 @@ export default function AboutPage() {
       {/* =========================================== */}
       {/* 6. POP-UP FORMS (DIALOGS)                   */}
       {/* =========================================== */}
+    
 
       {/* --- A. RIDER APPLICATION FORM --- */}
       <Dialog 
@@ -475,7 +502,6 @@ export default function AboutPage() {
           <Button onClick={handleCloseRider} color="inherit" size="large" sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          {/* UPDATED SUBMIT BUTTON */}
           <Button onClick={() => handleSubmit('rider')} variant="contained" color="primary" size="large" sx={{ borderRadius: 2, px: 4 }}>
             Submit Application
           </Button>
@@ -540,7 +566,6 @@ export default function AboutPage() {
           <Button onClick={handleClosePartner} color="inherit" size="large" sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          {/* UPDATED SUBMIT BUTTON */}
           <Button onClick={() => handleSubmit('partner')} variant="contained" color="primary" size="large" sx={{ borderRadius: 2, px: 4 }}>
             Submit Partner Request
           </Button>
@@ -568,7 +593,7 @@ export default function AboutPage() {
 // Helper Component for the Bottom Cards
 function CTA_Card({ title, image, buttonText, color, link }) {
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
       <CardMedia
         component="img"
         height="200"
@@ -576,7 +601,7 @@ function CTA_Card({ title, image, buttonText, color, link }) {
         alt={title}
       />
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h5" component="div" fontWeight="bold" gutterBottom>
+        <Typography variant="h5" component="div" fontWeight="bold" gutterBottom sx={{ color: '#000000' }}>
           {title}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
