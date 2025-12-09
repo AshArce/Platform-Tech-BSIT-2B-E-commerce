@@ -35,8 +35,7 @@ import {
 
 export default function AboutPage() {
   const theme = useTheme();
-  // Check if we are in dark mode to apply special effects
-  const isDark = theme.palette.mode === 'dark';
+  const isDarkTrigger = theme.palette.mode === 'dark';
 
   // ==========================================
   // STATE MANAGEMENT
@@ -63,27 +62,52 @@ export default function AboutPage() {
     setOpenSuccess(false);
   };
 
+  // ==========================================
+  // TEAM DATA
+  // ==========================================
   const teamMembers = [
-    { name: 'John Ashley Arcebuche', role: 'Founder / Developer', img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&q=80' },
-    { name: 'Riddik De Leon', role: 'Member / Fishball Vendor', img: '../image/Teams/riddik.jpg' },
-    { name: 'Marco Jay V Reyes', role: 'Member / Designer', img: '../image/Teams/marco.jpg' },
-    { name: 'Casely Aguilar', role: 'Member / Designer', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' },
+    { 
+      name: 'John Ashley Arcebuche', 
+      role: 'Founder / Developer', 
+      img: '../image/Teams/ash.png',
+      // TODO: PASTE PATH TO JOHN'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/ash_funny.png' 
+    },
+    { 
+      name: 'Riddik De Leon', 
+      role: 'Member / Fishball Vendor', 
+      img: '../image/Teams/riddik.png',
+      // TODO: PASTE PATH TO RIDDIK'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/riddik_funny.png' 
+    },
+    { 
+      name: 'Marco Jay V Reyes', 
+      role: 'Member / Designer', 
+      img: '../image/Teams/marco.png',
+      // TODO: PASTE PATH TO MARCO'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/marco_funny.png' 
+    },
+    { 
+      name: 'Casely Aguilar', 
+      role: 'Member / Designer', 
+      img: '../image/Teams/case.png',
+      // TODO: PASTE PATH TO CASELY'S FUNNY IMAGE BELOW
+      easterEggImg: '../image/Teams/case_funny.png' 
+    },
   ];
 
   return (
-    // CHANGED: Removed hardcoded bg, used background.default
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10, transition: 'background-color 0.3s' }}>
+    <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', pb: 10 }}>
       
       {/* 1. HERO SECTION */}
       <Box 
         sx={{ 
-          // FIXED: Changed 'white' to background.paper
-          bgcolor: 'background.paper', 
+          bgcolor: '#ffffff',
           pt: { xs: 8, md: 12 }, 
           pb: { xs: 12, md: 14 },
           textAlign: 'center',
           overflow: 'hidden',
-          transition: 'background-color 0.3s'
+          color: '#000000' 
         }}
       >
         <Container maxWidth="md">
@@ -91,16 +115,9 @@ export default function AboutPage() {
             variant="h2" 
             component="h1" 
             sx={{ 
-              fontWeight: 800, 
-              color: 'text.primary',
+              fontWeight: 800, // Stay black even in dark mode
               mb: 3,
               fontSize: { xs: '2.5rem', md: '3.5rem' },
-              // COOL FEATURE: Gradient Text in Dark Mode
-              ...(isDark && {
-                background: 'linear-gradient(45deg, #90caf9 30%, #64b5f6 90%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              })
             }}
           >
             Delivering Delicious and Fast.
@@ -108,7 +125,7 @@ export default function AboutPage() {
           <Typography 
             variant="h6" 
             sx={{ 
-              color: 'text.secondary', 
+              color: 'text.secondary',
               maxWidth: '800px', 
               mx: 'auto', 
               lineHeight: 1.6,
@@ -151,16 +168,15 @@ export default function AboutPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  // FIXED: Card inherits theme style, but added explicit background for safety
-                  bgcolor: 'background.paper',
+                  bgcolor: '#ffffff',
+                  color: '#000000',
                   '&:hover': { transform: 'translateY(-8px)' }
                 }}
               >
                 <Box 
                   sx={{ 
                     color: 'primary.main', 
-                    // FIXED: Dynamic color for icon background
-                    bgcolor: isDark ? 'rgba(144, 202, 249, 0.1)' : '#fdf1e3ff', 
+                    bgcolor: '#fdf1e3ff', 
                     width: 70,
                     height: 70,
                     borderRadius: '50%',
@@ -172,7 +188,7 @@ export default function AboutPage() {
                 >
                   {item.icon}
                 </Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
+                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#000000' }}>
                   {item.label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -188,8 +204,7 @@ export default function AboutPage() {
       {/* 3 & 4. JOIN THE MOVEMENT SECTION                          */}
       {/* ========================================================= */}
       <Box sx={{ 
-          // FIXED: Changed grey.50 to background.default to match dark mode
-          bgcolor: 'background.default', 
+          bgcolor: '#fafafa',
           py: { xs: 6, md: 10 }, 
           mb: 12 
       }}>
@@ -204,7 +219,7 @@ export default function AboutPage() {
                     sx={{ 
                         mt: 1, 
                         fontSize: { xs: '2rem', md: '3rem'},
-                        color: 'text.primary' // Ensure text is mapped to theme
+                        color: '#000000'
                     }}
                 >
                     Join the Movement
@@ -222,8 +237,8 @@ export default function AboutPage() {
                             borderRadius: 6, 
                             height: '100%', 
                             border: '1px solid',
-                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'grey.200',
-                            bgcolor: 'background.paper', // Ensure paper color matches theme
+                            borderColor: 'grey.200',
+                            bgcolor: '#ffffff',
                             display: 'flex', 
                             flexDirection: 'column',
                             transition: 'all 0.3s',
@@ -231,7 +246,7 @@ export default function AboutPage() {
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                            <Box sx={{ p: 1.5, bgcolor: isDark ? 'grey.800' : 'grey.900', color: 'white', borderRadius: 3, mr: 2 }}>
+                            <Box sx={{ p: 1.5, bgcolor: 'grey.900', color: 'white', borderRadius: 3, mr: 2 }}>
                                 <ElectricBike />
                             </Box>
                             <Typography variant="h5" fontWeight={800} color="text.primary">For Riders</Typography>
@@ -261,11 +276,11 @@ export default function AboutPage() {
                             size="large" 
                             endIcon={<ArrowForward />}
                             sx={{ 
-                                bgcolor: isDark ? 'grey.700' : 'grey.900', 
+                                bgcolor: 'grey.900',
                                 color: 'white', 
                                 py: 1.5,
                                 borderRadius: 3,
-                                '&:hover': { bgcolor: isDark ? 'grey.600' : 'grey.800' },
+                                '&:hover': { bgcolor: 'grey.800' },
                                 mt: 'auto'
                             }}
                         >
@@ -283,8 +298,8 @@ export default function AboutPage() {
                             borderRadius: 6, 
                             height: '100%', 
                             border: '1px solid',
-                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'grey.200',
-                            bgcolor: 'background.paper',
+                            borderColor: 'grey.200',
+                            bgcolor: '#ffffff',
                             display: 'flex', 
                             flexDirection: 'column',
                             transition: 'all 0.3s',
@@ -333,7 +348,7 @@ export default function AboutPage() {
       </Box>
 
       {/* ============================================== */}
-      {/* 4.5 TEAM SECTION                               */}
+      {/* 4.5 TEAM SECTION (THE EASTER EGG IS HERE)      */}
       {/* ============================================== */}
       <Container maxWidth="lg" sx={{ mb: { xs: 8, md: 12 } }}>
         <Typography 
@@ -342,7 +357,7 @@ export default function AboutPage() {
                 textAlign: 'center', 
                 fontWeight: 800, 
                 mb: { xs: 4, md: 6 }, 
-                color: 'text.primary',
+                color: '#000000',
                 fontSize: { xs: '2rem', md: '3rem' }
             }}
         >
@@ -355,7 +370,8 @@ export default function AboutPage() {
               <Box sx={{ textAlign: 'center' }}>
                 <Box 
                   component="img"
-                  src={member.img} 
+                  src={isDarkTrigger ? member.easterEggImg : member.img} 
+                  
                   alt={member.name}
                   sx={{ 
                     width: { xs: 120, sm: 160, md: 200 }, 
@@ -365,7 +381,8 @@ export default function AboutPage() {
                     mb: 2, 
                     boxShadow: 3,
                     border: '4px solid',
-                    borderColor: 'background.paper' // Border matches background
+                    borderColor: '#ffffff',
+                    transition: 'src 0.3s ease-in-out'
                   }}
                 />
                 <Typography 
@@ -375,7 +392,8 @@ export default function AboutPage() {
                     sx={{ 
                         fontSize: { xs: '1rem', md: '1.25rem' }, 
                         lineHeight: 1.2,
-                        mb: 0.5
+                        mb: 0.5,
+                        color: '#000000'
                     }}
                 >
                   {member.name}
@@ -396,12 +414,11 @@ export default function AboutPage() {
 
       {/* 5. JOIN US CARDS (Big CTA) */}
       <Box sx={{ 
-          // FIXED: Changed 'white' to background.paper
-          bgcolor: 'background.paper', 
+          bgcolor: '#ffffff',
           py: 10 
       }}>
         <Container maxWidth="lg">
-          <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 800, mb: 6, color: 'text.primary' }}>
+          <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 800, mb: 6, color: '#000000' }}>
             Ready to get started?
           </Typography>
           <Grid container spacing={4} justifyContent="center">
@@ -430,6 +447,7 @@ export default function AboutPage() {
       {/* =========================================== */}
       {/* 6. POP-UP FORMS (DIALOGS)                   */}
       {/* =========================================== */}
+    
 
       {/* --- A. RIDER APPLICATION FORM --- */}
       <Dialog 
@@ -575,8 +593,7 @@ export default function AboutPage() {
 // Helper Component for the Bottom Cards
 function CTA_Card({ title, image, buttonText, color, link }) {
   return (
-    // FIXED: Card color inheritance
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
       <CardMedia
         component="img"
         height="200"
@@ -584,7 +601,7 @@ function CTA_Card({ title, image, buttonText, color, link }) {
         alt={title}
       />
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h5" component="div" fontWeight="bold" gutterBottom color="text.primary">
+        <Typography variant="h5" component="div" fontWeight="bold" gutterBottom sx={{ color: '#000000' }}>
           {title}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
