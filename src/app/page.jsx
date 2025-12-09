@@ -14,7 +14,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock'; 
 import PersonIcon from '@mui/icons-material/Person'; 
 import PhoneIcon from '@mui/icons-material/Phone'; 
-import BadgeIcon from '@mui/icons-material/Badge';
+import BadgeIcon from '@mui/icons-material/Badge'; 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -29,10 +29,9 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
-  // 1. ADD USERNAME TO STATE
   const [formData, setFormData] = useState({
     fullName: '',
-    username: '',
+    username: '', 
     email: '', 
     phone: '',
     password: '',
@@ -46,50 +45,28 @@ const LoginPage = () => {
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  // --- 🔒 UPDATED VALIDATION LOGIC ---
+  // --- 🔒 VALIDATION LOGIC ---
   const validateRegisterForm = () => {
     const { fullName, username, email, phone, password } = formData;
 
-    // 1. FULL NAME VALIDATION
-    // Rule: More than 5 chars
-    if (fullName.length <= 5) {
-        return "Full Name must be more than 5 characters.";
-    }
-    // Rule: No special characters (Only Letters, Numbers, and Spaces allowed)
-    // Regex: ^[a-zA-Z0-9 ]+$ means "Start to end, only allow letters, numbers, and space"
-    if (!/^[a-zA-Z0-9 ]+$/.test(fullName)) {
-        return "Full Name cannot contain special characters (@, #, $, etc).";
-    }
-    // Rule: No leading space
-    if (fullName.startsWith(' ')) {
-        return "Full Name cannot start with a space.";
-    }
-    // Rule: No double spaces / consecutive spaces
-    if (fullName.includes('  ')) {
-        return "Full Name cannot contain double spaces.";
-    }
+    // Full Name
+    if (fullName.length <= 5) return "Full Name must be more than 5 characters.";
+    if (!/^[a-zA-Z0-9 ]+$/.test(fullName)) return "Full Name cannot contain special characters.";
+    if (fullName.startsWith(' ')) return "Full Name cannot start with a space.";
+    if (fullName.includes('  ')) return "Full Name cannot contain double spaces.";
 
-    // 2. USERNAME VALIDATION (New)
-    if (!username || username.length < 3) {
-        return "Username must be at least 3 characters.";
-    }
-    // Username shouldn't have spaces
-    if (/\s/.test(username)) {
-        return "Username cannot contain spaces.";
-    }
+    // Username
+    if (!username || username.length < 3) return "Username must be at least 3 characters.";
+    if (/\s/.test(username)) return "Username cannot contain spaces.";
 
-    // 3. Email Validation (@ and .com)
-    if (!email.includes('@') || !email.endsWith('.com')) {
-        return "Email must contain '@' and end with '.com'.";
-    }
+    // Email
+    if (!email.includes('@') || !email.endsWith('.com')) return "Email must contain '@' and end with '.com'.";
 
-    // 4. Phone Number (Numbers only, 9-11 digits)
+    // Phone
     const phoneRegex = /^[0-9]{9,11}$/;
-    if (!phoneRegex.test(phone)) {
-        return "Phone number must be digits only and between 9-11 numbers.";
-    }
+    if (!phoneRegex.test(phone)) return "Phone number must be digits only and between 9-11 numbers.";
 
-    // 5. Password Validation
+    // Password
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!strongPasswordRegex.test(password)) {
         return "Password must be at least 8 chars (1 Upper, 1 Lower, 1 Number, 1 Special Char).";
@@ -114,7 +91,6 @@ const LoginPage = () => {
         setLoginError('Invalid email/username or password.');
       }
     } else {
-      // --- SIGN UP ---
       const validationError = validateRegisterForm();
       if (validationError) {
         setLoginError(validationError);
@@ -155,7 +131,13 @@ const LoginPage = () => {
   );
 
   const renderForm = (isSignUp) => (
-    <Paper component="form" onSubmit={handleSubmit} elevation={4} sx={{ p: 4, borderRadius: 3, bgcolor: 'white', color: 'black', maxWidth: 400, mx: 'auto' }}>
+    <Paper 
+        component="form" 
+        onSubmit={handleSubmit} 
+        elevation={4} 
+        autoComplete="off" // 🔒 1. Disable generic form autocomplete
+        sx={{ p: 4, borderRadius: 3, bgcolor: 'white', color: 'black', maxWidth: 400, mx: 'auto' }}
+    >
       <Box display="flex" alignItems="center" mb={2}>
         <IconButton onClick={() => setView('LANDING')} sx={{ mr: 1 }}><ArrowBackIcon /></IconButton>
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Typography>
@@ -167,20 +149,56 @@ const LoginPage = () => {
 
       {isSignUp && (
         <>
-            <TextField fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense" value={formData.fullName} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }} />
-            
-            {/* NEW USERNAME FIELD */}
-            <TextField fullWidth name="username" label="Username" variant="outlined" margin="dense" value={formData.username} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><BadgeIcon color="action" /></InputAdornment>) }} />
+            <TextField 
+                fullWidth name="fullName" label="Full Name" variant="outlined" margin="dense" 
+                value={formData.fullName} onChange={handleInputChange} 
+                autoComplete="name" // Helper for browser
+                InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>) }} 
+            />
+            <TextField 
+                fullWidth name="username" label="Username" variant="outlined" margin="dense" 
+                value={formData.username} onChange={handleInputChange} 
+                autoComplete="off" // Username usually shouldn't autocomplete
+                InputProps={{ startAdornment: (<InputAdornment position="start"><BadgeIcon color="action" /></InputAdornment>) }} 
+            />
         </>
       )}
 
-      <TextField fullWidth name="email" label={isSignUp ? "Email Address" : "Email/Phone/Username"} variant="outlined" margin="dense" value={formData.email} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>) }} />
+      <TextField 
+        fullWidth name="email" 
+        label={isSignUp ? "Email Address" : "Email/Phone/Username"} 
+        variant="outlined" margin="dense" 
+        value={formData.email} onChange={handleInputChange} 
+        autoComplete={isSignUp ? "email" : "username"} // Context aware
+        InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>) }} 
+      />
 
       {isSignUp && (
-        <TextField fullWidth name="phone" label="Phone Number" variant="outlined" margin="dense" value={formData.phone} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon color="action" /></InputAdornment>) }} />
+        <TextField 
+            fullWidth name="phone" label="Phone Number" variant="outlined" margin="dense" 
+            value={formData.phone} onChange={handleInputChange} 
+            autoComplete="tel"
+            InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon color="action" /></InputAdornment>) }} 
+        />
       )}
 
-      <TextField fullWidth name="password" label="Password" type={showPassword ? 'text' : 'password'} variant="outlined" margin="dense" value={formData.password} onChange={handleInputChange} InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon color="action" /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+      {/* 🔒 2. PASSWORD SECURITY */}
+      <TextField 
+        fullWidth 
+        name="password" 
+        label="Password" 
+        type={showPassword ? 'text' : 'password'} 
+        variant="outlined" 
+        margin="dense" 
+        value={formData.password} 
+        onChange={handleInputChange} 
+        // 🔒 3. Prevent suggesting old passwords on registration
+        autoComplete={isSignUp ? 'new-password' : 'current-password'} 
+        InputProps={{ 
+            startAdornment: (<InputAdornment position="start"><LockIcon color="action" /></InputAdornment>), 
+            endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) 
+        }} 
+      />
       
       {isSignUp && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>
@@ -227,4 +245,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;
